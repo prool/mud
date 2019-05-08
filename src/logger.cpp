@@ -57,7 +57,7 @@ void vlog(const char *format, va_list args, FILE* logfile)
 
 	if (logfile == NULL)
 	{
-		puts("SYSERR: Using log() before stream was initialized!");
+		//puts("SYSERR: Using log() before stream was initialized!"); // prool
 		return;
 	}
 

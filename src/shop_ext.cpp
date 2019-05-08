@@ -344,7 +344,7 @@ void load(bool reload)
 			{
 				snprintf(buf, MAX_STRING_LENGTH, "...incorrect item_vnum=%d", item_vnum);
 				mudlog(buf, CMP, LVL_IMMORT, SYSLOG, TRUE);
-				return;
+				//return; // prool fool
 			}
 
 			// иним ее в магазе

@@ -718,10 +718,10 @@ void do_gen_comm(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 		{"Вам недозволено болтать.\r\n",	// gossip
 		 "болтать",
 		 "Вы вне видимости канала.\r\n",
-		 KYEL,
+		 KIYEL, // prool
 		 "заметили",
 		 "заметил$g",
-		 3,
+		 1, // prool
 		 15,
 		 PRF_NOGOSS},
 

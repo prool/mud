@@ -258,10 +258,13 @@ void assign_triggers(void *i, int type)
 				if (trig_index[rnum]->proto->get_attach_type() != MOB_TRIGGER)
 				{
 					const auto rnum = mob->get_rnum();
+					sprintf(buf, "SYSERR: prool fool: trigger has wrong attach type");
+#if 0 // prool fool
 					sprintf(buf, "SYSERR: trigger #%d has wrong attach_type: %d, for mob #%d",
 						trigger_vnum,
 						static_cast<int>(trig_index[rnum]->proto->get_attach_type()),
 						mob_index[rnum].vnum);
+#endif // prool fool
 					mudlog(buf, BRF, LVL_BUILDER, ERRLOG, TRUE);
 				}
 				else

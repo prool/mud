@@ -176,6 +176,8 @@ std::string DiscreteFile::fread_string(void)
 	bool isEscaped = false;
 	bool done = false;
 
+//printf("prool debug fread_string\n"); // prool
+
 	while (!done
 		&& fgets(bufferIn, sizeof(bufferIn), file())
 		&& to < end)
@@ -1145,6 +1147,7 @@ void MobileFile::parse_mobile(const int nr)
 	mob_index[i].set_idx = -1;
 
 	sprintf(buf2, "mob vnum %d", nr);
+//	printf("prooldebug mob vnum %d\n", nr); // prool
 
 	mob_proto[i].player_specials = player_special_data::s_for_mobiles;
 
@@ -1153,7 +1156,9 @@ void MobileFile::parse_mobile(const int nr)
 	mob_proto[i].set_npc_name(fread_string());
 
 	// real name
+//	printf(" (0) prooldebug i=%i\n", i); // prool
 	mob_proto[i].player_data.PNames[0] = mob_proto[i].get_npc_name();
+//	printf("prooldebug i=%i\n", i); // prool
 	for (j = 1; j < CObjectPrototype::NUM_PADS; j++)
 	{
 		mob_proto[i].player_data.PNames[j] = fread_string();
@@ -1865,7 +1870,7 @@ bool ZoneFile::load_regular_zone()
 
 	if (*buf != '#')
 	{
-		log("SYSERR: ERROR!!! not # in file %s", full_file_name().c_str());
+		log("SYSERR: ERROR :-( not # in file %s. line=%s", full_file_name().c_str(), buf); // prool
 		exit(1);
 	}
 

@@ -39,6 +39,8 @@
 #include "conf.h"
 #include "obj_sets.hpp"
 
+#include "newzerkalo.h" // prool
+
 #include <boost/algorithm/string.hpp>
 
 #include <sstream>
@@ -2149,6 +2151,7 @@ int Crash_load(CHAR_DATA * ch)
 	if (!SAVEINFO(index))
 	{
 		sprintf(buf, "%s entering game with no equipment.", GET_NAME(ch));
+		printf("%s %s entering game with no equipment\n", ptime(), to_utf((char *)GET_NAME(ch))); // prool
 		mudlog(buf, NRM, MAX(LVL_GOD, GET_INVIS_LEV(ch)), SYSLOG, TRUE);
 		return (1);
 	}
@@ -2177,6 +2180,7 @@ int Crash_load(CHAR_DATA * ch)
 					 "Проблемы с восстановлением ваших вещей из файла.\r\n"
 					 "Обращайтесь за помощью к Богам.\r\n", ch);
 		Crash_clear_objects(index);
+		printf("%s %s\n", ptime(), to_utf(buf)); // prool
 		return (1);
 		break;
 	}
@@ -3343,6 +3347,7 @@ int gen_receptionist(CHAR_DATA * ch, CHAR_DATA * recep, int cmd, char* /*arg*/, 
 			PLR_FLAGS(ch).set(PLR_CRYO);
 		}
 
+		printf("%s %s\n", ptime(), to_utf(buf)); // prool
 		mudlog(buf, NRM, MAX(LVL_GOD, GET_INVIS_LEV(ch)), SYSLOG, TRUE);
 
 		if ((save_room == r_helled_start_room)

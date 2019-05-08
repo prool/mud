@@ -170,7 +170,8 @@ set(SOURCES
 	src/id.cpp
 	src/stigmas.cpp
 	src/zone.table.cpp
-        src/strengthening.cpp)
+        src/strengthening.cpp
+	src/newzerkalo.cpp)
 
 set(HEADERS
         src/strengthening.hpp
@@ -318,7 +319,8 @@ set(HEADERS
 	src/xml_loading_helper.hpp
 	src/debug.utils.hpp
 	src/stigmas.hpp
-	src/zone.table.hpp)
+	src/zone.table.hpp
+	src/newzerkalo.h)
 
 set(CONFIGURATION_FILES lib.template/misc/configuration.xml)
 # Build types

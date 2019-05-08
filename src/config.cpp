@@ -548,9 +548,10 @@ void RuntimeConfiguration::setup_logs()
 	}
 
 	setup_converters();
-
+#if 0 // prool
 	printf("Bylins server will use %schronous output into syslog file.\n",
 		output_thread() ? "asyn" : "syn");
+#endif // prool
 }
 
 void RuntimeConfiguration::load_msdp_configuration(const pugi::xml_node* msdp)
@@ -854,10 +855,12 @@ bool CLogInfo::open()
 		setvbuf(handle, m_buffer, buffered(), BUFFER_SIZE);
 
 		m_handle = handle;
+#if 0 // prool
 		printf("Using log file '%s' with %s buffering. Opening in %s mode.\n",
 			filename().c_str(),
 			NAME_BY_ITEM(buffered()).c_str(),
 			NAME_BY_ITEM(this->mode()).c_str());
+#endif // prool
 		return true;
 	}
 

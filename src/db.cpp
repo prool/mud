@@ -2612,6 +2612,7 @@ void boot_db(void)
 		assign_objects();
 		log("   Rooms.");
 		assign_rooms();
+		log("   Rooms end");
 	}
 
 	boot_profiler.next_step("Assigning spells and skills levels");
@@ -6571,6 +6572,7 @@ Rooms::~Rooms()
 	log("~Rooms()");
 	for (auto i = this->begin(); i != this->end(); ++i)
 		delete *i;
+	log("~Rooms() end");
 }
 
 const std::size_t PlayersIndex::NOT_FOUND = ~static_cast<std::size_t>(0);

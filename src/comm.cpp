@@ -62,6 +62,8 @@
 #include "heartbeat.hpp"
 #include "zone.table.hpp"
 
+#include "newzerkalo.h" // prool
+
 #if defined WITH_SCRIPTING
 #include "scripting.hpp"
 #endif
@@ -700,6 +702,7 @@ void gettimeofday(struct timeval *t, void *dummy)
 
 int main_function(int argc, char **argv)
 {
+printf("prool debug: MUD start\n"); // prool
 #ifdef TEST_BUILD
 	// для нормального вывода русского текста под cygwin 1.7 и выше
 	setlocale(LC_CTYPE, "ru_RU.KOI8-R");
@@ -1497,7 +1500,7 @@ void game_loop(int epoll, socket_t mother_desc)
 void game_loop(socket_t mother_desc)
 #endif
 {
-	printf("Game started.\n");
+	printf("NewZerkalo MUD started.\n"); // prool
 
 #ifdef HAS_EPOLL
 	struct epoll_event *events;
@@ -3423,6 +3426,7 @@ void close_socket(DESCRIPTOR_DATA * d, int direct)
 				Crash_ldsave(d->character.get());
 				
 				sprintf(buf, "Closing link to: %s.", GET_NAME(d->character));
+				printf("%s %s\n", ptime(), to_utf(buf)); // prool
 				mudlog(buf, NRM, MAX(LVL_GOD, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 			}
 			d->character->desc = NULL;
@@ -3599,6 +3603,7 @@ RETSIGTYPE checkpointing(int/* sig*/)
 {
 	if (!tics)
 	{
+		// prool: tyt byl crash 3 maya 2019:
 		log("SYSERR: CHECKPOINT shutdown: tics not updated. (Infinite loop suspected)");
 		abort();
 	}

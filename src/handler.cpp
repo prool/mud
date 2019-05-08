@@ -55,6 +55,8 @@
 #include "zone.table.hpp"
 #include "backtrace.hpp"
 
+#include "newzerkalo.h" // prool
+
 #include <math.h>
 
 #include <unordered_set>
@@ -3221,6 +3223,7 @@ void extract_char(CHAR_DATA* ch, int clear_objs, bool zone_reset)
 	}
 
 	log("[Extract char] Stop function for char %s ", name.c_str());
+	//printf("%s stop function for char %s\n", ptime(), to_utf((char *)name.c_str())); // prool
 }
 
 /* ***********************************************************************

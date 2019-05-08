@@ -76,6 +76,8 @@
 #include "global.objects.hpp"
 #include "accounts.hpp"
 
+#include "newzerkalo.h" // prool
+
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
 
@@ -157,6 +159,10 @@ void add_logon_record(DESCRIPTOR_DATA * d);
 int find_action(char *cmd);
 int do_social(CHAR_DATA * ch, char *argument);
 void init_warcry(CHAR_DATA *ch);
+
+void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd); // prool
+void do_dukhmada(CHAR_DATA *ch, char *argument, int cmd, int subcmd); // prool
+void do_accio_trup(CHAR_DATA *ch, char *argument, int cmd, int subcmd); // prool
 
 void do_advance(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_alias(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -580,7 +586,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"изучить", POS_SITTING, do_learn, 0, 0, 0},
 	{"информация", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, 0},
 	{"испить", POS_RESTING, do_use, 0, SCMD_QUAFF, 500},
-	{"имя", POS_SLEEPING, do_name, LVL_IMMORT, 0, 0},
+	{"имя", POS_SLEEPING, do_name, 2/*LVL_IMMORT*/, 0, 0}, // prool
 
 	{"колдовать", POS_SITTING, do_cast, 1, 0, -1},
 	{"казна", POS_RESTING, do_not_here, 1, 0, 0},
@@ -846,6 +852,8 @@ cpp_extern const struct command_info cmd_info[] =
 	{"display", POS_DEAD, do_display, 0, 0, 0},
 	{"drink", POS_RESTING, do_drink, 0, SCMD_DRINK, 500},
 	{"drop", POS_RESTING, do_drop, 0, SCMD_DROP, 500},
+	{"акциотруп", POS_RESTING, do_accio_trup, 0, 0, 0}, // prool
+	{"духмада", POS_RESTING, do_dukhmada, 0, 0, 0}, // prool
 	{"dumb", POS_DEAD, do_wizutil, LVL_IMMORT, SCMD_DUMB, 0},
 	{"eat", POS_RESTING, do_eat, 0, SCMD_EAT, 500},
 	{"devour", POS_RESTING, do_eat, 0, SCMD_DEVOUR, 300},
@@ -859,6 +867,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"exits", POS_RESTING, do_exits, 0, 0, 500},
 	{"featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, 0},
 	{"features", POS_SLEEPING, do_features, 0, 0, 0},
+	{"fflush", POS_DEAD, do_fflush, LVL_IMMORT, 0, 0}, // prool
 	{"fill", POS_STANDING, do_pour, 0, SCMD_FILL, 500},
 	{"fit", POS_RESTING, do_fit, 0, SCMD_DO_ADAPT, 500},
 	{"flee", POS_FIGHTING, do_flee, 1, 0, -1},
@@ -2062,6 +2071,7 @@ int perform_dupe_check(DESCRIPTOR_DATA * d)
 		check_light(d->character.get(), LIGHT_NO, LIGHT_NO, LIGHT_NO, LIGHT_NO, 1);
 		act("$n восстановил$g связь.", TRUE, d->character.get(), 0, 0, TO_ROOM);
 		sprintf(buf, "%s [%s] has reconnected.", GET_NAME(d->character), d->host);
+		printf("%s %s [%s] reconnected\n", ptime(), to_utf((char *)GET_NAME(d->character)),d->host); // prool
 		mudlog(buf, NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 		login_change_invoice(d->character.get());
 		break;
@@ -2110,6 +2120,7 @@ int pre_help(CHAR_DATA * ch, char *arg)
 // и просто еще до иммов не достучались лимит поднять... вобщем сидит тот, кто не успел Ж)
 int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 {
+	return 1; // prool: no check IP dupes
 	if (!d->character || IS_IMMORTAL(d->character))
 		return 1;
 
@@ -2178,6 +2189,7 @@ int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 
 int check_dupes_email(DESCRIPTOR_DATA * d)
 {
+	return 1; // prool: no check email dupes
 	if (!d->character
 		|| IS_IMMORTAL(d->character))
 	{
@@ -2584,6 +2596,8 @@ void do_entergame(DESCRIPTOR_DATA * d)
 		break;
 	}
 
+	printf("%s %s\n", ptime(), to_utf(buf)); // prool
+
 	mudlog(buf, NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 	look_at_room(d->character.get(), 0);
 	d->has_prompt = 0;
@@ -2717,6 +2731,8 @@ void DoAfterPassword(DESCRIPTOR_DATA * d)
 	Clan::SetClanData(d->character.get());
 
 	log("%s [%s] has connected.", GET_NAME(d->character), d->host);
+
+	printf("%s %s [%s] has connected\n", ptime(), to_utf((char *)GET_NAME(d->character)), d->host); // prool
 
 	if (load_result)
 	{
@@ -2903,6 +2919,8 @@ void DoAfterEmailConfirm(DESCRIPTOR_DATA *d)
 	d->character->save_char();
 	d->character->get_account()->set_last_login();
 	d->character->get_account()->add_player(GetUniqueByName(d->character->get_name()));
+
+	printf("%s %s [%s] new player\n", ptime(), to_utf((char *)GET_NAME(d->character)), d->host); // prool
 
 	// добавляем в список ждущих одобрения
 	if (!(int)NAME_FINE(d->character))
@@ -3816,16 +3834,21 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 		DoAfterEmailConfirm(d);
 		break;
 		#endif
-		{
-			int random_number = number(1000000, 9999999);
+		{char prool_buf[512];
+			int random_number = number(100, 999);
+			//printf("code=%i\r\n", random_number); // prool
+			snprintf(prool_buf,512,"Код %i\r\n", random_number);
+			SEND_TO_Q(prool_buf, d);
 			new_char_codes[d->character->get_pc_name()] = random_number;
 			strncpy(GET_EMAIL(d->character), arg, 127);
 			*(GET_EMAIL(d->character) + 127) = '\0';
 			lower_convert(GET_EMAIL(d->character));
 			std::string cmd_line = str(boost::format("python3 send_code.py %s %d &") % GET_EMAIL(d->character) % random_number);
+#if 0 // prool
 			auto result = system(cmd_line.c_str());
 			UNUSED_ARG(result);
-			SEND_TO_Q("\r\nВам на электронную почту был выслан код. Введите его, пожалуйста: \r\n", d);
+#endif // prool
+			SEND_TO_Q("\r\nВведите показанный выше код, пожалуйста: \r\n", d);
 			STATE(d) = CON_RANDOM_NUMBER;
 		}
 		break;
@@ -3844,7 +3867,8 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 	case CON_RANDOM_NUMBER:
 		{
 			int code_rand = atoi(arg);
-
+			// prool modif: no code
+			
 			if (new_char_codes.count(d->character->get_pc_name()) != 0)
 			{
 				if (new_char_codes[d->character->get_pc_name()] != code_rand)
@@ -3856,7 +3880,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 				DoAfterEmailConfirm(d);
 				break;
 			}
-
+#if 1 // tyt byl prool
 			if (new_loc_codes.count(GET_EMAIL(d->character)) == 0)
 			{
 				break;
@@ -3868,7 +3892,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 				STATE(d) = CON_CLOSE;
 				break;
 			}
-
+#endif // prool
 			new_loc_codes.erase(GET_EMAIL(d->character));
 			add_logon_record(d);
 			DoAfterPassword(d);
@@ -4726,5 +4750,9 @@ bool who_spamcontrol(CHAR_DATA *ch, unsigned short int mode = WHO_LISTALL)
 	return false;
 }
 
+void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd) // prool
+{
+	printf("do_fflush (fake! no real fflush)\n");
+}
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

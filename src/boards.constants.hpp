@@ -14,7 +14,7 @@ namespace Boards
 	// максимальный размер сообщения
 	constexpr int MAX_MESSAGE_LENGTH = 4096;
 	// мин.левел для поста на общих досках
-	constexpr int MIN_WRITE_LEVEL = 6;
+	constexpr int MIN_WRITE_LEVEL = 1; // prool
 	// максимальное кол-во сообщений на одной доске
 	constexpr unsigned int MAX_BOARD_MESSAGES = 200;
 	// максимальное кол-во сообщений на спец.досках
