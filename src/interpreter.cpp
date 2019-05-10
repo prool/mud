@@ -4753,7 +4753,8 @@ bool who_spamcontrol(CHAR_DATA *ch, unsigned short int mode = WHO_LISTALL)
 
 void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd) // prool
 {
-	printf("do_fflush (fake! no real fflush)\n");
+	fflush(0);
+	send_to_char("fflush!\r\n", ch);
 }
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :
