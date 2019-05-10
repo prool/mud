@@ -166,6 +166,8 @@ extern void save_zone_count_reset();
 extern int perform_move(CHAR_DATA * ch, int dir, int following, int checkmob, CHAR_DATA * leader);
 // flags for show_list_to_char 
 
+void make_who2html(void); // add by prool
+
 enum {
   eItemNothing,   /* item is not readily accessible */
   eItemGet,     /* item on ground */
@@ -1534,7 +1536,7 @@ void game_loop(socket_t mother_desc)
 		if (descriptor_list == NULL)
 		{
 			log("No connections.  Going to sleep.");
-			//make_who2html();
+			make_who2html();
 #ifdef HAS_EPOLL
 			if (epoll_wait(epoll, events, MAXEVENTS, -1) == -1)
 #else
@@ -2773,6 +2775,9 @@ ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space_left)
 {
 	ssize_t ret;
 
+	struct sockaddr peer; // prool
+	socklen_t peer_len; // prool
+
 #if defined(CIRCLE_ACORN)
 	ret = recv(desc, read_point, space_left, MSG_DONTWAIT);
 #elif defined(CIRCLE_WINDOWS)
@@ -2828,7 +2833,18 @@ ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space_left)
 	 * We don't know what happened, cut them off. This qualifies for
 	 * a SYSERR because we have no idea what happened at this point.
 	 */
-	perror("SYSERR: perform_socket_read: about to lose connection");
+	//perror("SYSERR 1: perform_socket_read: about to lose connection"); // comment by prool
+#if 0 // prool debug
+	if (getpeername(desc, &peer, &peer_len) == -1) {
+		      perror("getpeername() failed");
+		            return -1;
+			       }
+	else
+		{
+		printf("Peer's IP address is: %s\n", peer.sa_data);
+		}
+#endif
+
 	return (-1);
 }
 

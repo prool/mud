@@ -6338,10 +6338,15 @@ void make_who2html(void)
 	char *morts = NULL;
 	char *buffer = NULL;
 
+	//printf("prool debug make_who2html\n"); // prool
+
 	if ((opf = fopen(WHOLIST_FILE, "w")) == 0)
 		return;		// or log it ? *shrug*
-	fprintf(opf, "<HTML><HEAD><TITLE>Кто сейчас в Былинах?</TITLE></HEAD>\n");
-	fprintf(opf, "<BODY><H1>Кто сейчас живет в Былинах?</H1><HR>\n");
+
+	fprintf(opf, "<HTML><HEAD><TITLE>Who in Zerkalo MUD</TITLE>\n\
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=koi8-r\">\n\
+</HEAD>\n");
+	fprintf(opf, "<BODY><H1>Who in Zerkalo MUD:</H1><HR>\n");
 
 	sprintf(buf, "БОГИ <BR> \r\n");
 	imms = str_add(imms, buf);
@@ -6372,7 +6377,7 @@ void make_who2html(void)
 
 	if (morts_num + imms_num == 0)
 	{
-		sprintf(buf, "Все ушли на фронт! <BR>");
+		sprintf(buf, "Никого <BR>");
 		buffer = str_add(buffer, buf);
 	}
 	else

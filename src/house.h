@@ -76,9 +76,9 @@ long do_gold_tax(CHAR_DATA *ch, long gold);
 // период обновление статов экспы в топе кланов в режиме запрета обновления на лету (минут)
 #define CLAN_TOP_REFRESH_PERIOD 360
 // клановый налог в день
-#define CLAN_TAX 1000
+#define CLAN_TAX 1 /* 1000 */ // by prool
 // налог на выборку по параметрам из хранилища в день
-#define CLAN_STOREHOUSE_TAX 1000
+#define CLAN_STOREHOUSE_TAX 1 /* 1000 */ // by prool
 // процент стоимости ренты шмотки (одетой) для хранилища
 #define CLAN_STOREHOUSE_COEFF 50
 

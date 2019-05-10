@@ -2148,12 +2148,13 @@ int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 			&& (STATE(i) == CON_PLAYING
 				|| STATE(i) == CON_MENU))
 		{
-			switch (CheckProxy(d))
+			switch (2/*CheckProxy(d)*/) // prool: proxy enabled
 			{
 			case 0:
 				// если уже сидим в проксе, то смысла спамить никакого
-				if (IN_ROOM(d->character) == r_unreg_start_room
-					|| d->character->get_was_in_room() == r_unreg_start_room)
+				// prool: multing enabled
+				if (1/*IN_ROOM(d->character) == r_unreg_start_room
+					|| d->character->get_was_in_room() == r_unreg_start_room*/)
 				{
 					return 0;
 				}

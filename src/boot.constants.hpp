@@ -148,7 +148,8 @@ enum SetStuffMode
 #define BAN_FILE	    LIB_ETC "badsites"	// for the siteban system
 #define PROXY_BAN_FILE	LIB_ETC "badproxy"	// for the siteban system
 
-#define WHOLIST_FILE    LIB_STAT "wholist.html"	// for the stat system
+//#define WHOLIST_FILE    LIB_STAT "wholist.html"	// for the stat system
+#define WHOLIST_FILE    "/var/www/newzerkalo/who.html"	// by prool
 
 //Dead load (dl_load) options
 #define DL_ORDINARY    0
