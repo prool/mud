@@ -3298,7 +3298,7 @@ int gen_receptionist(CHAR_DATA * ch, CHAR_DATA * recep, int cmd, char* /*arg*/, 
 	{
 		return (FALSE);
 	}
-	if (free_rent)
+	if ((free_rent) && !CMD_IS("settle") && !CMD_IS("поселиться")) // prool modif.
 	{
 		act("$n сказал$g вам : \"Сегодня спим нахаляву.  Наберите просто \"конец\".\"",
 			FALSE, recep, 0, ch, TO_VICT);
