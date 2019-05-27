@@ -105,6 +105,13 @@ inline obj_rnum real_object(obj_vnum vnum) { return obj_proto.rnum(vnum); }
 
 inline auto GET_OBJ_SPEC(const CObjectPrototype* obj)
 {
+#if 1
+if (obj==0)
+	{
+		printf("prool debug GET_OBJ_SPEC obj==0\n");
+		return (int (*)(CHAR_DATA*, void*, int, char*))NULL; // prool fool!
+	}
+#endif
 	return obj_proto.spec(obj->get_rnum());
 }
 

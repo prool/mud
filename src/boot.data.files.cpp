@@ -457,7 +457,7 @@ void WorldFile::parse_room(int virtual_nr, const int virt)
 		world[room_nr]->set_name(fread_string());
 
 		std::string desc = fread_string();
-		boost::trim_right_if(desc, boost::is_any_of(std::string(" _"))); //убираем пробелы в конце строки
+		boost::trim_right_if(desc, boost::is_any_of(std::string(" _"))); //убираем пробелы в конце строки // tyt byl prool iskal tochku
 		desc.shrink_to_fit();
 		world[room_nr]->description_num = RoomDescription::add_desc(desc);
 
@@ -976,7 +976,7 @@ bool ObjectFile::check_object(OBJ_DATA* obj)
 	if (GET_OBJ_RENT(obj) <= 0)
 	{
 		error = true;
-		log("SYSERR: Object #%d (%s) has negative cost/day (%d).",
+		log("SYSERR: Object #%d (%s) has negative or zero cost/day (%d).", // prool
 			GET_OBJ_VNUM(obj), obj->get_short_description().c_str(), GET_OBJ_RENT(obj));
 	}
 

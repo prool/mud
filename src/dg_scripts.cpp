@@ -1530,7 +1530,17 @@ int remove_var_cntx(struct trig_var_data **var_list, char *name, long id)
 
 bool SCRIPT_CHECK(const OBJ_DATA* go, const long type)
 {
-	return !go->get_script()->is_purged() && go->get_script()->has_triggers() && IS_SET(SCRIPT_TYPES(go->get_script()), type);
+	//if (go) {printf("SCRIPT_CHECK obj %i\n",GET_OBJ_VNUM(go));}
+	//if (go==0) {printf("prool debug: pizdets #1\n");return 0;}
+	//if ((go->get_script())==0) {printf("prool debug: pizdets #2");return 0;}
+	
+	//return !go->get_script()->is_purged() && go->get_script()->has_triggers() && IS_SET(SCRIPT_TYPES(go->get_script()), type);
+	bool a1, a2, a3; // formula is expanded by prool fool
+
+	a1=go->get_script()->is_purged();
+	a2=go->get_script()->has_triggers();
+	a3=IS_SET(SCRIPT_TYPES(go->get_script()), type);
+	return !a1 && a2 && a3;
 }
 
 bool SCRIPT_CHECK(const CHAR_DATA* go, const long type)

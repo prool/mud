@@ -1451,7 +1451,7 @@ void write_one_object(std::stringstream &out, OBJ_DATA * object, int location)
 		for (auto descr = object->get_ex_description(); descr; descr = descr->next)
 		{
 			out << "Edes: " << (descr->keyword ? descr->keyword : "") << "~\n"
-				<< (descr->description ? descr->description : "") << "~\n";
+				<< (descr->description ? descr->description : "") << "~\n"; // prool: tut crash
 		}
 
 		// требования по мортам

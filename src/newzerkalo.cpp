@@ -83,8 +83,13 @@ void generate_magic_enchant(OBJ_DATA *obj);
 
 char prool_g_buf [PROOL_G_LEN];
 
+char gluck[] = "(ptime gluck?)";
+
 char *ptime(void)
 	{
+#if 0 // 0 - normal ptime() 1 - ptime disabled bikoz probable gluck
+		return gluck;
+#else
 	char *tmstr;
 	time_t mytime;
 
@@ -94,7 +99,7 @@ char *ptime(void)
 	*(tmstr + strlen(tmstr) - 1) = '\0';
 
 	return tmstr;
-
+#endif
 	}
 
 char	*to_utf(char *str)
@@ -162,12 +167,14 @@ l_dukh:;
 		const auto obj = world_objects.create_from_prototype_by_rnum(r_num);
 		obj->set_crafter_uid(GET_UNIQUE(ch));
 
+#if 0  // prool: все это взято из do_load() и возможно не нужно
 		if (number == GlobalDrop::MAGIC1_ENCHANT_VNUM
 			|| number == GlobalDrop::MAGIC2_ENCHANT_VNUM
 			|| number == GlobalDrop::MAGIC3_ENCHANT_VNUM)
 		{
 			generate_magic_enchant(obj.get());
 		}
+#endif
 
 			obj_to_char(obj.get(), ch);
 
@@ -188,6 +195,9 @@ bool found;
 //send_to_char("do_accio_trup()\r\n",ch);
 
 // поиск трупа
+
+
+printf("%s prool debug: accio trup\r\n", ptime());
 
 sprintf(buf,"Боги знают, что вас зовут %s\r\n", GET_NAME(ch)); send_to_char(buf,ch);
 
@@ -215,6 +225,19 @@ else {send_to_char("Мы НЕ нашли труп\r\n",ch); return; }
 
 // obj from room
 	obj_from_room(trup);
+#if 0 // prool
 // obj to room
 	obj_to_room(trup, ch->in_room);
+#endif
+	obj_to_char(trup, ch);
+
+	if (trup->get_carried_by() == ch)
+	{
+	act("Вы возвратили себе $o3.", FALSE, ch, trup, 0, TO_CHAR);
+	act("$n возвратил$g $o3.", TRUE, ch, trup, 0, TO_ROOM);
+	}
+	else
+	{
+	send_to_char("Вернуть труп не получилось!\r\n",ch);
+	}
 }

@@ -842,7 +842,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"commands", POS_DEAD, do_commands, 0, SCMD_COMMANDS, 0},
 	{"consider", POS_RESTING, do_consider, 0, 0, 500},
 	{"credits", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, 0},
-	{"date", POS_DEAD, do_date, LVL_IMMORT, SCMD_DATE, 0},
+	{"date", POS_DEAD, do_date, 1 /*LVL_IMMORT*/, SCMD_DATE, 0}, // prool
 	{"dc", POS_DEAD, do_dc, LVL_GRGOD, 0, 0},
 	{"deposit", POS_STANDING, do_not_here, 1, 0, 500},
 	{"deviate", POS_FIGHTING, do_deviate, 0, 0, -1},
@@ -1031,7 +1031,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"unfreeze", POS_DEAD, do_unfreeze, LVL_IMPL, 0, 0},
 	{"ungroup", POS_DEAD, do_ungroup, 0, 0, -1},
 	{"unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, 500},
-	{"uptime", POS_DEAD, do_date, LVL_IMMORT, SCMD_UPTIME, 0},
+	{"uptime", POS_DEAD, do_date, 1/*LVL_IMMORT*/, SCMD_UPTIME, 0}, // prool
 	{"use", POS_SITTING, do_use, 1, SCMD_USE, 500},
 	{"users", POS_DEAD, do_users, LVL_IMMORT, 0, 0},
 	{"value", POS_STANDING, do_not_here, 0, 0, -1},
@@ -1826,13 +1826,24 @@ int special(CHAR_DATA * ch, int cmd, char *arg, int fnum)
 	// special in inventory? //
 	for (i = ch->carrying; i; i = i->get_next_content())
 	{
-		if (GET_OBJ_SPEC(i) != NULL
-			&& GET_OBJ_SPEC(i)(ch, i, cmd, arg))
+
+	if (GET_OBJ_SPEC(i)!=NULL) // prool's
+	{
+		if (/*GET_OBJ_SPEC(i) != NULL
+			&& */ GET_OBJ_SPEC(i)(ch, i, cmd, arg))
 		{
 			check_hiding_cmd(ch, -1);
 			return (1);
 		}
 	}
+#if 0 // prool
+	else
+		{
+		printf("prool debug: hernya in inventory\n");
+		}
+#endif
+
+	} // end for
 
 	// special in mobile present? //
 //Polud чтобы продавцы не мешали друг другу в одной комнате, предусмотрим возможность различать их по номеру

@@ -3619,7 +3619,8 @@ RETSIGTYPE checkpointing(int/* sig*/)
 {
 	if (!tics)
 	{
-		// prool: tyt byl crash 3 maya 2019:
+		// prool: tyt byl crash 3 raza!
+		printf("%s prool debug: SYSERR: CHECKPOINT shutdown: tics not updated. (Infinite loop suspected)\r\n", ptime());
 		log("SYSERR: CHECKPOINT shutdown: tics not updated. (Infinite loop suspected)");
 		abort();
 	}

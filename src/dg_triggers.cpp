@@ -1026,7 +1026,7 @@ int cmd_otrig(OBJ_DATA * obj, CHAR_DATA * actor, char *cmd, const char *argument
 {
 	char buf[MAX_INPUT_LENGTH];
 
-	if ((obj && SCRIPT_CHECK(obj, OTRIG_COMMAND)) && !GET_INVIS_LEV(actor))
+	if (obj) if ((obj && SCRIPT_CHECK(obj, OTRIG_COMMAND)) && !GET_INVIS_LEV(actor)) // prool fool protect
 	{
 		for (auto t : obj->get_script()->trig_list)
 		{
