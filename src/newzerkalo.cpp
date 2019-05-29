@@ -117,6 +117,8 @@ void do_dukhmada (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	FILE *fp;
 	char *cc;
 
+printf("prool debug: dukhmada\n");
+
 fp=fopen("dukhmada.cfg","r");
 if (fp==0)
 {
@@ -136,6 +138,7 @@ if (*argument==0)
 			if (cc) strcpy(cc,"\r\n");
 			send_to_char(buf,ch);
 			}
+	fclose(fp);
 	return;
 	}
 
@@ -156,12 +159,14 @@ while(1)
 	}
     }
 send_to_char("Духмада не знает такого предмета\r\n",ch);
+fclose(fp);
 return;
 l_dukh:;
 
 		if ((r_num = real_object(number)) < 0)
 		{
 			send_to_char("Духмада пошарил в астрале, но там оказалось пусто\r\n", ch);
+			fclose(fp);
 			return;
 		}
 		const auto obj = world_objects.create_from_prototype_by_rnum(r_num);
@@ -176,13 +181,14 @@ l_dukh:;
 		}
 #endif
 
-			obj_to_char(obj.get(), ch);
+		obj_to_char(obj.get(), ch);
 
 		act("$n достал$g из астрала $o3!", FALSE, ch, obj.get(), 0, TO_ROOM);
 		act("Вы достали из астрала $o3.", FALSE, ch, obj.get(), 0, TO_CHAR);
 		load_otrigger(obj.get());
 		obj_decay(obj.get());
 		olc_log("%s dukhmada::load obj %s #%d", GET_NAME(ch), obj->get_short_description().c_str(), number);
+fclose(fp);
 }
 
 void do_accio_trup(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
@@ -235,6 +241,7 @@ else {send_to_char("Мы НЕ нашли труп\r\n",ch); return; }
 	{
 	act("Вы возвратили себе $o3.", FALSE, ch, trup, 0, TO_CHAR);
 	act("$n возвратил$g $o3.", TRUE, ch, trup, 0, TO_ROOM);
+	extract_obj(trup);
 	}
 	else
 	{
