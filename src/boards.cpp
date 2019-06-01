@@ -307,7 +307,7 @@ namespace Boards
 				message_no_write(ch);
 				return;
 			}
-			if (is_spamer(ch, board))
+			if (0/*is_spamer(ch, board)*/) // by prool
 			{
 				send_to_char("Да вы ведь только что писали сюда.\r\n", ch);
 				return;
