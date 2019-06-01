@@ -49,6 +49,8 @@
 #include "sysdep.h"
 #include "conf.h"
 
+#include "newzerkalo.h" // prool
+
 #include <boost/format.hpp>
 
 extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0);
@@ -1224,6 +1226,7 @@ void check_idling(CHAR_DATA * ch)
 				Clan::clan_invoice(ch, false);
 				sprintf(buf, "%s force-rented and extracted (idle).", GET_NAME(ch));
 				mudlog(buf, NRM, LVL_GOD, SYSLOG, TRUE);
+				printf("%s\n",to_utf(buf)); // by prool
 				extract_char(ch, FALSE);		
 
 				// чара в лд уже посейвило при обрыве коннекта

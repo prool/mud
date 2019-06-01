@@ -117,7 +117,13 @@ void do_dukhmada (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	FILE *fp;
 	char *cc;
 
-printf("prool debug: dukhmada\n");
+if (!check_moves(ch,20))
+	{
+	printf("prool debug: dukhmada: check moves\n");
+	return;
+	}
+
+printf("prool debug: dukhmada OK\n");
 
 fp=fopen("dukhmada.cfg","r");
 if (fp==0)
@@ -191,7 +197,7 @@ l_dukh:;
 fclose(fp);
 }
 
-void do_accio_trup(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
+void do_accio_trup(CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/)
 {
 char buf[BUFLEN];
 char imya_trupa[BUFLEN];
