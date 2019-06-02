@@ -117,13 +117,13 @@ void do_dukhmada (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	FILE *fp;
 	char *cc;
 
-if (!check_moves(ch,20))
+if (!check_moves(ch,10))
 	{
-	printf("prool debug: dukhmada: check moves\n");
+	//printf("prool debug: dukhmada: check moves\n");
 	return;
 	}
 
-printf("prool debug: dukhmada OK\n");
+//printf("prool debug: dukhmada OK\n");
 
 fp=fopen("dukhmada.cfg","r");
 if (fp==0)
@@ -209,7 +209,7 @@ bool found;
 // поиск трупа
 
 
-printf("%s prool debug: accio trup\r\n", ptime());
+printf("%s prool debug: accio trup %s ", ptime(), to_utf((char *)GET_NAME(ch)));
 
 sprintf(buf,"Боги знают, что вас зовут %s\r\n", GET_NAME(ch)); send_to_char(buf,ch);
 
@@ -232,8 +232,16 @@ found = false;
 
 }
 
-if (found==true) send_to_char("\r\nМы нашли труп и призываем его сюда\r\n",ch);
-else {send_to_char("Мы НЕ нашли труп\r\n",ch); return; }
+if (found==true)
+	{
+	printf("found\n");
+	send_to_char("\r\nМы нашли труп и призываем его сюда\r\n",ch);
+	}
+else
+	{
+	printf("NOT found\n");
+	send_to_char("Мы НЕ нашли труп\r\n",ch); return; 
+	}
 
 // obj from room
 	obj_from_room(trup);
