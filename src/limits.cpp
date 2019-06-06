@@ -1226,7 +1226,7 @@ void check_idling(CHAR_DATA * ch)
 				Clan::clan_invoice(ch, false);
 				sprintf(buf, "%s force-rented and extracted (idle).", GET_NAME(ch));
 				mudlog(buf, NRM, LVL_GOD, SYSLOG, TRUE);
-				printf("%s\n",to_utf(buf)); // by prool
+				printf("%s %s\n", ptime(), to_utf(buf)); // by prool
 				extract_char(ch, FALSE);		
 
 				// чара в лд уже посейвило при обрыве коннекта
