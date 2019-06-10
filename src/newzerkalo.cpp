@@ -208,7 +208,6 @@ bool found;
 
 // поиск трупа
 
-
 printf("%s prool debug: accio trup %s ", ptime(), to_utf((char *)GET_NAME(ch)));
 
 sprintf(buf,"Боги знают, что вас зовут %s\r\n", GET_NAME(ch)); send_to_char(buf,ch);
@@ -234,6 +233,15 @@ found = false;
 
 if (found==true)
 	{
+		{
+		if (trup->get_in_room() <= NOWHERE)
+		        {
+		        send_to_char("Мы нашли труп, но он находится не в какой-то комнате, а где-то еще (может, у кого-то в инвентаре)\r\nТакие трупы не мы не можем призвать!\r\n", ch);
+			printf("SOMEWHERE\n");
+			return;
+		        }
+
+		}
 	printf("found\n");
 	send_to_char("\r\nМы нашли труп и призываем его сюда\r\n",ch);
 	}
