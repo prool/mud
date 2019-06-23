@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <iconv.h>
 
 #define STRLEN 1024
@@ -59,7 +60,7 @@ while(1)
 	{
 	str[0]=0;
 	fgets(str,STRLEN,fp);
-	if (str[0]==0) continue;
+	if (str[0]==0) {sleep(1);continue;}
 	koi_to_utf8(str,str2);
 	printf("%s",str2);
 	}
