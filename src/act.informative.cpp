@@ -89,6 +89,7 @@ extern int top_imtypes;
 extern void show_code_date(CHAR_DATA *ch);
 extern int nameserver_is_slow; //config.cpp
 extern std::vector<City> cities;
+extern int prool_port;
 // extern functions
 long find_class_bitvector(char arg);
 int level_exp(CHAR_DATA * ch, int level);
@@ -6338,7 +6339,8 @@ void make_who2html(void)
 	char *morts = NULL;
 	char *buffer = NULL;
 
-	//printf("prool debug make_who2html\n"); // prool
+	//printf("prool debug make_who2html. port=%i\n",prool_port); // prool
+	if (prool_port!=4000) return; // this is test mud on !4000 port. prool
 
 	if ((opf = fopen(WHOLIST_FILE, "w")) == 0)
 		return;		// or log it ? *shrug*

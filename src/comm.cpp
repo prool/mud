@@ -168,6 +168,9 @@ extern int perform_move(CHAR_DATA * ch, int dir, int following, int checkmob, CH
 
 void make_who2html(void); // add by prool
 
+// prool's static:
+int prool_port;
+
 enum {
   eItemNothing,   /* item is not readily accessible */
   eItemGet,     /* item on ground */
@@ -704,7 +707,7 @@ void gettimeofday(struct timeval *t, void *dummy)
 
 int main_function(int argc, char **argv)
 {
-printf("prool debug: MUD start\n"); // prool
+//printf("prool debug: MUD start\n"); // prool
 #ifdef TEST_BUILD
 	// для нормального вывода русского текста под cygwin 1.7 и выше
 	setlocale(LC_CTYPE, "ru_RU.KOI8-R");
@@ -853,6 +856,8 @@ printf("prool debug: MUD start\n"); // prool
 	else
 	{
 		log("Running game on port %d.", port);
+		printf("Running game on port %d\n", port);
+		prool_port=port;
 
 		// стль и буст юзаются уже немало где, а про их экспешены никто не думает
 		// пока хотя бы стльные ловить и просто логировать факт того, что мы вышли
