@@ -212,4 +212,17 @@ void send_to_zone(char *messg, int zone_rnum)
 			SEND_TO_Q(messg, i);
 }
 
+void send_to_world(char *messg, int zone_rnum) // by prool
+{
+	DESCRIPTOR_DATA *i;
+
+	if (!messg || !*messg)
+		return;
+
+	for (i = descriptor_list; i; i = i->next)
+		if (!i->connected && i->character && AWAKE(i->character) &&
+				(IN_ROOM(i->character) != NOWHERE) /* && (world[IN_ROOM(i->character)]->zone == zone_rnum)*/)
+			SEND_TO_Q(messg, i);
+}
+
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

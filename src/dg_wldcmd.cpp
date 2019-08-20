@@ -40,6 +40,7 @@ extern const char *dirs[];
 void die(CHAR_DATA * ch, CHAR_DATA * killer);
 void sub_write(char *arg, CHAR_DATA * ch, byte find_invis, int targets);
 void send_to_zone(char *messg, int zone_rnum);
+void send_to_world(char *messg, int zone_rnum);
 CHAR_DATA *get_char_by_room(ROOM_DATA * room, char *name);
 ROOM_DATA *get_room(char *name);
 OBJ_DATA *get_obj_by_room(ROOM_DATA * room, char *name);
@@ -193,6 +194,17 @@ void do_wzoneecho(ROOM_DATA *room, char *argument, int/* cmd*/, int/* subcmd*/)
 	{
 		sprintf(buf, "%s\r\n", msg);
 		send_to_zone(buf, zone);
+	}
+}
+
+void do_wworldecho(ROOM_DATA *room, char *argument, int/* cmd*/, int/* subcmd*/) // prool
+{
+	int zone;
+	char zone_name[MAX_INPUT_LENGTH], buf[MAX_INPUT_LENGTH];
+
+	{
+		sprintf(buf, "%s\r\n", argument);
+		send_to_world(buf, zone);
 	}
 }
 
@@ -1124,6 +1136,7 @@ const struct wld_command_info wld_cmd_info[] =
 	{"wspellitem", do_wspellitem, 0},
 	{"wspellturntemp", do_wspellturntemp, 0},
 	{"wportal", do_wportal, 0},
+	{"wworldecho", do_wworldecho, 0},
 	{"\n", 0, 0}		// this must be last
 };
 
