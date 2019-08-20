@@ -193,7 +193,8 @@ void do_drink(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_drunkoff(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_features(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_featset(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_findhelpee(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_findhelpee(CHAR_DATA *ch, char* argument, int cmd, int subcmd);
+void do_freehelpee(CHAR_DATA* ch, char* argument, int cmd, int subcmd);
 void do_firstaid(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_fire(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_drop(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -419,6 +420,7 @@ void do_cities(CHAR_DATA *ch, char*, int, int);
 void do_send_text_to_char(CHAR_DATA *ch, char*, int, int);
 void do_add_wizard(CHAR_DATA *ch, char*, int, int);
 void do_touch_stigma(CHAR_DATA *ch, char*, int, int);
+void do_show_mobmax(CHAR_DATA *ch, char*, int, int);
 
 /* This is the Master Command List(tm).
 
@@ -561,6 +563,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"заклинания", POS_SLEEPING, do_spells, 0, 0, 0},
 	{"заклстат", POS_DEAD, do_spellstat, LVL_GRGOD, 0, 0},
 	{"закрыть", POS_SITTING, do_gen_door, 0, SCMD_CLOSE, 500},
+	{"замакс", POS_RESTING, do_show_mobmax, 1, 0, -1},
 	{"замести", POS_STANDING, do_hidetrack, 1, 0, -1},
 	{"замолчать", POS_DEAD, do_wizutil, LVL_GOD, SCMD_MUTE, 0},
 	{"заморозить", POS_DEAD, do_wizutil, LVL_FREEZE, SCMD_FREEZE, 0},
@@ -627,7 +630,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"налить", POS_STANDING, do_pour, 0, SCMD_FILL, 500},
 	{"наполнить", POS_STANDING, do_pour, 0, SCMD_FILL, 500},
 	{"найти", POS_STANDING, do_sense, 0, 0, 500},
-	{"нанять", POS_STANDING, do_findhelpee, 0, SCMD_BUYHELPEE, -1},
+	{"нанять", POS_STANDING, do_findhelpee, 0, 0, -1},
 	{"новичок", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, 0},
 	{"новости", POS_DEAD, Boards::DoBoard, 1, Boards::NEWS_BOARD, -1},
 	{"надеть", POS_RESTING, do_wear, 0, 0, 500},
@@ -736,7 +739,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"разжечь", POS_STANDING, do_fire, 0, 0, -1},
 	{"распустить", POS_DEAD, do_ungroup, 0, 0, 500},
 	{"рассмотреть", POS_STANDING, do_not_here, 0, 0, -1},
-	{"рассчитать", POS_RESTING, do_findhelpee, 0, SCMD_FREEHELPEE, -1},
+	{"рассчитать", POS_RESTING, do_freehelpee, 0, 0, -1},
 	{"режим", POS_DEAD, do_mode, 0, 0, 0},
 	{"ремонт", POS_RESTING, do_repair, 0, 0, -1},
 	{"рецепты", POS_RESTING, do_recipes, 0, 0, 0},
@@ -1969,7 +1972,7 @@ int perform_dupe_check(DESCRIPTOR_DATA * d)
 			if (str_cmp(d->host, k->host))
 			{
 				sprintf(buf, "ПОВТОРНЫЙ ВХОД !!! ID = %ld Персонаж = %s Хост = %s(был %s)",
-						GET_IDNUM(d->character), GET_NAME(d->character), d->host, k->host);
+						GET_IDNUM(d->character), GET_NAME(d->character), k->host, d->host);
 				mudlog(buf, BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 				//send_to_gods(buf);
 			}
@@ -1995,8 +1998,8 @@ int perform_dupe_check(DESCRIPTOR_DATA * d)
 		{
 			if (str_cmp(d->host, k->host))
 			{
-				sprintf(buf, "ПОВТОРНЫЙ ВХОД !!! ID = %ld Name = %s Host = %s(was %s)",
-						GET_IDNUM(d->character), GET_NAME(d->character), d->host, k->host);
+				sprintf(buf, "ПОВТОРНЫЙ ВХОД !!! ID = %ld Name = %s Host = %s(был %s)",
+						GET_IDNUM(d->character), GET_NAME(d->character), k->host, d->host);
 				mudlog(buf, BRF, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 				//send_to_gods(buf);
 			}
@@ -2555,6 +2558,7 @@ void do_entergame(DESCRIPTOR_DATA * d)
 	greet_mtrigger(d->character.get(), -1);
 	greet_otrigger(d->character.get(), -1);
 	STATE(d) = CON_PLAYING;
+	PRF_FLAGS(d->character).set(PRF_COLOR_2); // цвет всегда полный
 // режимы по дефолту у нового чара
 	const bool new_char = GET_LEVEL(d->character) <= 0 ? true : false;
 	if (new_char)
@@ -2819,7 +2823,7 @@ void init_char(CHAR_DATA* ch, player_index_element& element)
 	ch->player_data.time.logon = time(0);
 
 	// make favors for sex
-	if (ch->player_data.sex == ESex::SEX_MALE)
+	if (ch->get_sex() == ESex::SEX_MALE)
 	{
 		ch->player_data.weight = number(120, 180);
 		ch->player_data.height = number(160, 200);
@@ -3571,12 +3575,12 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 		{
 		case 'М':
 		case 'M':
-			GET_SEX(d->character) = ESex::SEX_MALE;
+			d->character->set_sex(ESex::SEX_MALE);
 			break;
 
 		case 'Ж':
 		case 'F':
-			GET_SEX(d->character) = ESex::SEX_FEMALE;
+			d->character->set_sex(ESex::SEX_FEMALE);
 			break;
 
 		default:

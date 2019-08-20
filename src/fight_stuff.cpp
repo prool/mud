@@ -29,6 +29,8 @@
 #include "world.objects.hpp"
 #include "object.prototypes.hpp"
 #include "zone.table.hpp"
+#include "char_player.cpp"
+#include "char_player.hpp"
 
 #include <algorithm>
 
@@ -384,7 +386,6 @@ void die(CHAR_DATA *ch, CHAR_DATA *killer)
 		{
 			process_mobmax(ch, killer);
 		}
-
 		if (killer)
 		{
 			update_leadership(ch, killer);
@@ -827,9 +828,12 @@ int get_extend_exp(int exp, CHAR_DATA * ch, CHAR_DATA * victim)
 
 	if (!IS_NPC(victim) || IS_NPC(ch))
 		return (exp);
-
 	// если моб убивается первый раз, то повышаем экспу в несколько раз
 	// стимулируем изучение новых зон!
+	if (PRF_FLAGGED(ch, PRF_TESTER))
+	{
+		send_to_char(ch, "&RУ моба еще %d убийств без замакса, экспа %d, убито %d\r\n&n", mob_proto[victim->get_rnum()].mob_specials.MaxFactor, exp, ch->mobmax_get(GET_MOB_VNUM(victim)) + 1);
+	}
 	if (ch->mobmax_get(GET_MOB_VNUM(victim)) == 0)
 	{
 		// так чуть-чуть поприятней
@@ -837,13 +841,11 @@ int get_extend_exp(int exp, CHAR_DATA * ch, CHAR_DATA * victim)
 		exp /= std::max(1.0, 0.5 * (GET_REMORT(ch) - MAX_EXP_COEFFICIENTS_USED));
 		return (exp);
 	}
-
-	for (koef = 100, base = 0, diff = ch->mobmax_get(GET_MOB_VNUM(victim));
+	for (koef = 100, base = 0, diff = ch->mobmax_get(GET_MOB_VNUM(victim)) - mob_proto[victim->get_rnum()].mob_specials.MaxFactor + 1; // отсчет от 0 добавляю +1
 			base < diff && koef > 5; base++, koef = koef * (95 - get_remort_mobmax(ch)) / 100);
         // минимальный опыт при замаксе 15% от полного опыта
 	exp = exp * MAX(15, koef) / 100;
 	exp /= std::max(1.0, 0.5 * (GET_REMORT(ch) - MAX_EXP_COEFFICIENTS_USED));
-
 	return (exp);
 }
 
@@ -1088,24 +1090,46 @@ void group_gain(CHAR_DATA * killer, CHAR_DATA * victim)
 
 void gain_battle_exp(CHAR_DATA *ch, CHAR_DATA *victim, int dam)
 {
-	if (ch != victim
-		&& OK_GAIN_EXP(ch, victim)
-		&& GET_EXP(victim) > 0
-		&& !AFF_FLAGGED(victim, EAffectFlag::AFF_CHARM)
-		&& !(MOB_FLAGGED(victim, MOB_ANGEL)|| MOB_FLAGGED(victim, MOB_GHOST))
-		&& !IS_NPC(ch)
-		&& !MOB_FLAGGED(victim, MOB_NO_BATTLE_EXP))
+	// не даем получать батлу с себя по зеркалу?
+	if (ch == victim) { return; }
+	// не даем получать экспу с !эксп мобов
+	if (MOB_FLAGGED(victim, MOB_NO_BATTLE_EXP)) { return; }
+	// если цель не нпс то тоже не даем экспы
+	if (!IS_NPC(victim)) { return; }
+	// если цель под чармом не даем экспу
+	if (AFF_FLAGGED(victim, EAffectFlag::AFF_CHARM)) { return; }
+
+	// получение игроками экспы
+	if (!IS_NPC(ch) && OK_GAIN_EXP(ch, victim))
 	{
 		int max_exp = MIN(max_exp_gain_pc(ch), (GET_LEVEL(victim) * GET_MAX_HIT(victim) + 4) /
 			(5 * MAX(1, GET_REMORT(ch) - MAX_EXP_COEFFICIENTS_USED - 1)));
 		double coeff = MIN(dam, GET_HIT(victim)) / static_cast<double>(GET_MAX_HIT(victim));
 		int battle_exp = MAX(1, static_cast<int>(max_exp * coeff));
-		if (Bonus::is_bonus(Bonus::BONUS_WEAPON_EXP))
+		if (Bonus::is_bonus(Bonus::BONUS_WEAPON_EXP)) {
 			battle_exp *= Bonus::get_mult_bonus();
-//		int battle_exp = MAX(1, (GET_LEVEL(victim) * MIN(dam, GET_HIT(victim)) + 4) /
-//						 (5 * MAX(1, GET_REMORT(ch) - MAX_EXP_COEFFICIENTS_USED - 1)));
+		}
 		gain_exp(ch, battle_exp);
 		ch->dps_add_exp(battle_exp, true);
+	}
+
+
+	// перенаправляем батлэкспу чармиса в хозяина, цифры те же что и у файтеров.
+	if (IS_NPC(ch) && AFF_FLAGGED(ch, EAffectFlag::AFF_CHARM)) {
+		CHAR_DATA * master = ch->get_master();
+		// проверяем что есть мастер и он может получать экспу с данной цели
+		if (master && OK_GAIN_EXP(master, victim)) {
+			int max_exp = MIN(max_exp_gain_pc(master), (GET_LEVEL(victim) * GET_MAX_HIT(victim) + 4) /
+													   (5 * MAX(1, GET_REMORT(master) - MAX_EXP_COEFFICIENTS_USED - 1)));
+
+			double coeff = MIN(dam, GET_HIT(victim)) / static_cast<double>(GET_MAX_HIT(victim));
+			int battle_exp = MAX(1, static_cast<int>(max_exp * coeff));
+			if (Bonus::is_bonus(Bonus::BONUS_WEAPON_EXP)) {
+				battle_exp *= Bonus::get_mult_bonus();
+			}
+			gain_exp(master, battle_exp);
+			master->dps_add_exp(battle_exp, true);
+		}
 	}
 }
 
@@ -1433,6 +1457,18 @@ void Damage::post_init(CHAR_DATA *ch, CHAR_DATA *victim)
 	}
 
 	post_init_shields(victim);
+}
+
+void do_show_mobmax(CHAR_DATA *ch, char*, int, int)
+{
+	const auto player = dynamic_cast<Player*>(ch);
+	if (nullptr == player)
+	{
+		// написать в лог, что show_mobmax была вызвана не игроком
+		return;
+	}
+	send_to_char(ch, "&BВ стадии тестирования!!!&n\n");
+	player->show_mobmax();
 }
 
 void Damage::zero_init()

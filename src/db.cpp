@@ -75,6 +75,7 @@
 #include <sstream>
 #include <string>
 #include <cmath>
+#include <boost/lexical_cast.hpp>
 
 #define CRITERION_FILE "criterion.xml"
 #define CASES_FILE "cases.xml"
@@ -1165,6 +1166,36 @@ void load_dquest()
 		tmp.desk = object.attribute("desk").as_string();
 		d_quest.emplace(tmp.id, tmp);
 	}
+}
+
+OBJ_DATA *create_material(CHAR_DATA *mob)
+{
+	int vnum = 0;
+	if ((GET_RACE(mob) == NPC_RACE_ANIMAL)) 
+	{
+		vnum = 3047;
+	}
+	if ((GET_RACE(mob) == NPC_RACE_PLANT)) 
+	{
+		vnum = 3043;
+	}
+	if ((GET_RACE(mob) == NPC_RACE_BIRD)) 
+	{
+		vnum = 3044;
+	}
+	if ((GET_RACE(mob) == NPC_RACE_FISH)) 
+	{
+		vnum = 3045;
+	}
+    
+	if (vnum)
+	{
+		const auto material = world_objects.create_from_prototype_by_vnum(vnum);
+		//act("$n нашел$g что-то среди остатков $o3.", FALSE, ch, material.get(), 0, TO_ROOM | TO_ARENA_LISTEN);
+		//act("Вы нашли что-то среди остатков $o3.", FALSE, ch, material.get(), 0, TO_CHAR);
+		return material.get();
+    }
+	return 0;    
 }
 
 
@@ -2937,9 +2968,10 @@ void GameLoader::index_boot(const EBootType mode)
 
 	prepare_global_structures(mode, rec_count);
 
+    const auto data_file_factory = DataFileFactory::create();
 	for (const auto& entry: *index)
 	{
-		auto data_file = DataFileFactory::get_file(mode, entry);
+		auto data_file = data_file_factory->get_file(mode, entry);
 		if (!data_file->open())
 		{
 			continue;	// TODO: we need to react somehow.
@@ -3199,6 +3231,7 @@ int trans_obj_name(OBJ_DATA * obj, CHAR_DATA * ch)
 {
 	// ищем метку @p , @p1 ... и заменяем на падежи.
 	int i, k;
+	char buf[200];	
 	for (i = 0; i < CObjectPrototype::NUM_PADS; i++)
 	{
 		std::string obj_pad = GET_OBJ_PNAME(obj_proto[GET_OBJ_RNUM(obj)], i);
@@ -3214,7 +3247,8 @@ int trans_obj_name(OBJ_DATA * obj, CHAR_DATA * ch)
 			if (i == 0)
 			{
 				obj->set_short_description(obj_pad);
-				obj->set_aliases(obj_pad); // ставим алиасы
+				sprintf(buf, "%s материал",obj_pad.c_str() );
+				obj->set_aliases(buf); // ставим алиасы
 			}
 		}
 	};
@@ -3726,6 +3760,34 @@ int vnum_room(char *searchname, CHAR_DATA * ch)
 		}
 	}
 	return (found);
+}
+
+int vnum_obj_trig(char *searchname, CHAR_DATA * ch)
+{
+	int num;
+	try
+	{
+		 num = boost::lexical_cast<int>(searchname);
+	}
+	catch(boost::bad_lexical_cast&)
+	{
+		return 0;
+	}
+
+	const auto trigs = obj2trigers.find(num);
+	if(trigs == obj2trigers.end())
+	{
+		return 0;
+	}
+
+	int found = 0;
+	for(const auto& t : trigs->second)
+	{
+		sprintf(buf, "%3d. [%5d] %s\r\n", ++found, trig_index[t]->vnum, trig_index[t]->proto->get_name().c_str());
+		send_to_char(buf, ch);
+	}
+
+	return found;
 }
 
 namespace {
@@ -4717,11 +4779,24 @@ void ZoneReset::reset_zone_essential()
 					break;
 				}
 
-				mob = NULL;	//Добавлено Ладником
+				mob = NULL;	//Добавлено Ладником 
 				if (mob_index[ZCMD.arg1].number < ZCMD.arg2 &&
 					(ZCMD.arg4 < 0 || mobs_in_room(ZCMD.arg1, ZCMD.arg3) < ZCMD.arg4))
 				{
 					mob = read_mobile(ZCMD.arg1, REAL);
+					if(!mob)
+					{
+						sprintf(buf, "ZRESET: ошибка! моб %d  в зоне %d не существует", ZCMD.arg1, zone_table[m_zone_rnum].number);
+						mudlog(buf, BRF, LVL_BUILDER, SYSLOG, TRUE);
+						return;
+					}
+					if (!mob_proto[mob->get_rnum()].get_role_bits().any())
+					{
+						int rndlev = mob->get_level();
+						rndlev += number(-2, +2); 
+						mob->set_level(rndlev);
+					}
+
 					char_to_room(mob, ZCMD.arg3);
 					load_mtrigger(mob);
 					tmob = mob;

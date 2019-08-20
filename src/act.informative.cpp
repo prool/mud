@@ -25,6 +25,7 @@
 #include "spells.h"
 #include "skills.h"
 #include "fight.h"
+#include "fight_hit.hpp"
 #include "screen.h"
 #include "constants.h"
 #include "pk.h"
@@ -1717,15 +1718,15 @@ void list_one_char(CHAR_DATA * i, CHAR_DATA * ch, int skill_mode)
 	if (IS_MANA_CASTER(i))
 		{
 			*aura_txt = '\0';
-			if (i->get_skill(SKILL_DARK_MAGIC) > 0)
+			if (i->get_trained_skill(SKILL_DARK_MAGIC) > 0)
 				strcat(aura_txt,  "...все сферы магии кружатся над головой");
-			else if (i->get_skill(SKILL_AIR_MAGIC) > 0)
+			else if (i->get_trained_skill(SKILL_AIR_MAGIC) > 0)
 				strcat(aura_txt, "...сферы четырех магий кружатся над головой");
-			else if (i->get_skill(SKILL_EARTH_MAGIC) > 0)
+			else if (i->get_trained_skill(SKILL_EARTH_MAGIC) > 0)
 				strcat(aura_txt, "...сферы трех магий кружатся над головой");
-			else if  (i->get_skill(SKILL_WATER_MAGIC) > 0)
+			else if  (i->get_trained_skill(SKILL_WATER_MAGIC) > 0)
 				strcat(aura_txt, "...сферы двух магий кружатся над головой");
-			else if (i->get_skill(SKILL_FIRE_MAGIC) > 0)
+			else if (i->get_trained_skill(SKILL_FIRE_MAGIC) > 0)
 				strcat(aura_txt, "...сфера огня кружит над головой");
 			if (*aura_txt)
 				act(aura_txt, FALSE, i, 0, ch, TO_VICT);
@@ -2260,7 +2261,7 @@ void look_at_room(CHAR_DATA * ch, int ignore_brief)
 	}
 	else
 	{
-		if (PRF_FLAGGED(ch, PRF_MAPPER))
+		if (PRF_FLAGGED(ch, PRF_MAPPER) && !PLR_FLAGGED(ch, PLR_SCRIPTWRITER))
 		{
 			sprintf(buf2, "%s [%d]", world[ch->in_room]->name, GET_ROOM_VNUM(ch->in_room));
 			send_to_char(buf2, ch);
@@ -2282,7 +2283,7 @@ void look_at_room(CHAR_DATA * ch, int ignore_brief)
 	}
 
 	// autoexits
-	if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT))
+	if (!IS_NPC(ch) && PRF_FLAGGED(ch, PRF_AUTOEXIT) && !PLR_FLAGGED(ch, PLR_SCRIPTWRITER))
 	{
 		do_auto_exits(ch);
 	}
@@ -2916,7 +2917,14 @@ bool look_at_target(CHAR_DATA * ch, char *arg, int subcmd)
 			ch->get_skill(SKILL_TOWNPORTAL) &&
 			(port = get_portal(GET_ROOM_VNUM(ch->in_room), NULL)) != NULL && IS_SET(where_bits, FIND_OBJ_ROOM))
 	{
-		if (GET_LEVEL(ch) < MAX(1, port->level - GET_REMORT(ch) / 2))
+
+		if (has_char_portal(ch, GET_ROOM_VNUM(ch->in_room)))
+		{
+			send_to_char("На камне огненными буквами написано слово '&R", ch);
+			send_to_char(port->wrd, ch);
+			send_to_char("&n'.\r\n", ch);
+			return 0;
+		} else if (GET_LEVEL(ch) < MAX(1, port->level - GET_REMORT(ch) / 2))
 		{
 			send_to_char("На камне что-то написано огненными буквами.\r\n", ch);
 			send_to_char("Но вы еще недостаточно искусны, чтобы разобрать слово.\r\n", ch);
@@ -3444,9 +3452,9 @@ void print_do_score_all(CHAR_DATA *ch)
 			CCWHT(ch, C_NRM), resist, CCCYN(ch, C_NRM));
 
 	if (can_use_feat(ch, SHOT_FINESSE_FEAT)) //ловкий выстрел дамы от ловки
-		max_dam = GET_REAL_DR(ch) + str_bonus(GET_REAL_DEX(ch), STR_TO_DAM);
+		max_dam = get_real_dr(ch) + str_bonus(GET_REAL_DEX(ch), STR_TO_DAM);
 	else
-		max_dam = GET_REAL_DR(ch) + str_bonus(GET_REAL_STR(ch), STR_TO_DAM);
+		max_dam = get_real_dr(ch) + str_bonus(GET_REAL_STR(ch), STR_TO_DAM);
 
 	if (can_use_feat(ch, BULLY_FEAT))
 	{
@@ -3481,6 +3489,24 @@ void print_do_score_all(CHAR_DATA *ch)
 	}
 	else
 	{
+		weapon = GET_EQ(ch, WEAR_HOLD);
+		if (weapon)
+		{
+			if (GET_OBJ_TYPE(weapon) == OBJ_DATA::ITEM_WEAPON)
+			{
+				max_dam += GET_OBJ_VAL(weapon, 1) * (GET_OBJ_VAL(weapon, 2) + 1) / 2;
+				skill = static_cast<ESkill>(GET_OBJ_SKILL(weapon));
+				if (ch->get_skill(skill) == SKILL_INVALID)
+				{
+					hr -= (50 - MIN(50, GET_REAL_INT(ch))) / 3;
+					max_dam -= (50 - MIN(50, GET_REAL_INT(ch))) / 6;
+				}
+				else
+				{
+				    apply_weapon_bonus(GET_CLASS(ch), skill, &max_dam, &hr);
+				}
+			}
+		}
 		weapon = GET_EQ(ch, WEAR_WIELD);
 		if (weapon)
 		{
@@ -3500,36 +3526,22 @@ void print_do_score_all(CHAR_DATA *ch)
 			}
 		}
 
-		weapon = GET_EQ(ch, WEAR_HOLD);
-		if (weapon)
-		{
-			if (GET_OBJ_TYPE(weapon) == OBJ_DATA::ITEM_WEAPON)
-			{
-				max_dam += GET_OBJ_VAL(weapon, 1) * (GET_OBJ_VAL(weapon, 2) + 1) / 2;
-				skill = static_cast<ESkill>(GET_OBJ_SKILL(weapon));
-				if (ch->get_skill(skill) == SKILL_INVALID)
-				{
-					hr -= (50 - MIN(50, GET_REAL_INT(ch))) / 3;
-					max_dam -= (50 - MIN(50, GET_REAL_INT(ch))) / 6;
-				}
-				else
-				{
-				    apply_weapon_bonus(GET_CLASS(ch), skill, &max_dam, &hr);
-				}
-			}
-		}
+	}
+
+	if (weapon)
+	{
+		int tmphr = 0;
+		HitData::check_weap_feats(ch, GET_OBJ_SKILL(weapon), tmphr,  max_dam);
+		hr -= tmphr;
+	}
+	else
+	{
+		HitData::check_weap_feats(ch, SKILL_PUNCH, hr,  max_dam);
 	}
 
 	if (can_use_feat(ch, WEAPON_FINESSE_FEAT))
 	{
-		if (weapon && GET_OBJ_WEIGHT(weapon) > 20)
-		{
-			hr += str_bonus(GET_REAL_STR(ch), STR_TO_HIT);
-		}
-		else
-		{
-			hr += str_bonus(GET_REAL_DEX(ch), STR_TO_HIT);
-		}
+		hr += str_bonus(GET_REAL_DEX(ch), STR_TO_HIT);
 	}
 	else
 	{
@@ -3998,7 +4010,8 @@ void print_do_score_all(CHAR_DATA *ch)
 	strcat(buf, " -------------------------------------------------------------------------------------\r\n");
 	strcat(buf, CCNRM(ch, C_NRM));
 	send_to_char(buf, ch);
-//	test_self_hitroll(ch);
+	if (PRF_FLAGGED(ch, PRF_TESTER))
+		test_self_hitroll(ch);
 }
 
 void do_score(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)

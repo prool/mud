@@ -67,6 +67,7 @@ CObjectPrototype::shared_ptr get_object_prototype(obj_vnum nr, int type = VIRTUA
 int vnum_object(char *searchname, CHAR_DATA * ch);
 int vnum_flag(char *searchname, CHAR_DATA * ch);
 int vnum_room(char *searchname, CHAR_DATA * ch);
+int vnum_obj_trig(char *searchname, CHAR_DATA * ch);
 
 // structure for the reset commands
 struct reset_com
@@ -309,6 +310,7 @@ extern TIME_INFO_DATA time_info;
 
 extern int convert_drinkcon_skill(CObjectPrototype *obj, bool proto);
 
+OBJ_DATA *create_material(CHAR_DATA *mob);
 int dl_parse(load_list ** dl_list, char *line);
 int dl_load_obj(OBJ_DATA * corpse, CHAR_DATA * ch, CHAR_DATA * chr, int DL_LOAD_TYPE);
 int trans_obj_name(OBJ_DATA * obj, CHAR_DATA * ch);

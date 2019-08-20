@@ -1838,11 +1838,13 @@ void do_vnum(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	half_chop(argument, buf, buf2);
 
 	if (!*buf || !*buf2 || (!is_abbrev(buf, "mob") && !is_abbrev(buf, "obj") && !is_abbrev(buf, "room") && !is_abbrev(buf, "flag")
-		&& !is_abbrev(buf, "существо") && !is_abbrev(buf, "предмет") && !is_abbrev(buf, "флаг") && !is_abbrev(buf, "комната")))
+		&& !is_abbrev(buf, "существо") && !is_abbrev(buf, "предмет") && !is_abbrev(buf, "флаг") && !is_abbrev(buf, "комната")
+		&& !is_abbrev(buf, "trig") && !is_abbrev(buf, "триггер")))
 	{
-		send_to_char("Usage: vnum { obj | mob | flag | room } <name>\r\n", ch);
+		send_to_char("Usage: vnum { obj | mob | flag | room | trig } <name>\r\n", ch);
 		return;
 	}
+
 	if ((is_abbrev(buf, "mob")) || (is_abbrev(buf, "существо")))
 		if (!vnum_mobile(buf2, ch))
 			send_to_char("Нет существа с таким именем.\r\n", ch);
@@ -1858,9 +1860,11 @@ void do_vnum(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	if ((is_abbrev(buf, "room")) || (is_abbrev(buf, "комната")))
 		if (!vnum_room(buf2, ch))
 			send_to_char("Нет объектов с таким флагом.\r\n", ch);
+
+	if (is_abbrev(buf, "trig") || is_abbrev(buf, "триггер"))
+		if (!vnum_obj_trig(buf2, ch))
+			send_to_char("Нет триггеров, загружаемых такой объект\r\n", ch);
 }
-
-
 
 void do_stat_room(CHAR_DATA * ch, const int rnum)
 {
@@ -2350,39 +2354,34 @@ void do_stat_object(CHAR_DATA * ch, OBJ_DATA * j, const int virt)
 
 	case OBJ_DATA::ITEM_INGREDIENT:
 		sprintbit(GET_OBJ_SKILL(j), ingradient_bits, buf2);
-		sprintf(buf, "%s\r\n", buf2);
-		send_to_char(buf, ch);
+		sprintf(buf, "ingr bits %s", buf2);
 
 		if (IS_SET(GET_OBJ_SKILL(j), ITEM_CHECK_USES))
 		{
-			sprintf(buf, "можно применить %d раз\r\n", GET_OBJ_VAL(j, 2));
-			send_to_char(buf, ch);
+			sprintf(buf + strlen(buf), "\r\nможно применить %d раз", GET_OBJ_VAL(j, 2));
 		}
 
 		if (IS_SET(GET_OBJ_SKILL(j), ITEM_CHECK_LAG))
 		{
-			sprintf(buf, "можно применить 1 раз в %d сек", (i = GET_OBJ_VAL(j, 0) & 0xFF));
+			sprintf(buf + strlen(buf), "\r\nможно применить 1 раз в %d сек", (i = GET_OBJ_VAL(j, 0) & 0xFF));
 			if (GET_OBJ_VAL(j, 3) == 0 || GET_OBJ_VAL(j, 3) + i < time(NULL))
-				strcat(buf, "(можно применять).\r\n");
+				sprintf(buf + strlen(buf), "(можно применять).");
 			else
 			{
 				li = GET_OBJ_VAL(j, 3) + i - time(NULL);
-				sprintf(buf + strlen(buf), "(осталось %ld сек).\r\n", li);
+				sprintf(buf + strlen(buf), "(осталось %ld сек).", li);
 			}
-			send_to_char(buf, ch);
 		}
 
 		if (IS_SET(GET_OBJ_SKILL(j), ITEM_CHECK_LEVEL))
 		{
-			sprintf(buf, "можно применить с %d уровня.\r\n", (GET_OBJ_VAL(j, 0) >> 8) & 0x1F);
-			send_to_char(buf, ch);
+			sprintf(buf+ strlen(buf), "\r\nможно применить с %d уровня.", (GET_OBJ_VAL(j, 0) >> 8) & 0x1F);
 		}
 
 		if ((i = real_object(GET_OBJ_VAL(j, 1))) >= 0)
 		{
-			sprintf(buf, "прототип %s%s%s.\r\n",
+			sprintf(buf + strlen(buf), "\r\nпрототип %s%s%s.",
 				CCICYN(ch, C_NRM), obj_proto[i]->get_PName(0).c_str(), CCNRM(ch, C_NRM));
-			send_to_char(buf, ch);
 		}
 		break;
 	case OBJ_DATA::ITEM_MAGIC_CONTAINER:
@@ -2801,7 +2800,8 @@ void do_stat_character(CHAR_DATA * ch, CHAR_DATA * k, const int virt)
 		sprintf(buf, "NPC флаги: %s%s%s\r\n", CCCYN(ch, C_NRM), buf2, CCNRM(ch, C_NRM));
 		send_to_char(buf, ch);
 		send_to_char(ch, "Количество атак: %s%d%s. ", CCCYN(ch, C_NRM), k->mob_specials.ExtraAttack + 1, CCNRM(ch, C_NRM));
-		send_to_char(ch, "Вероятность использования умений: %s%d%%%s\r\n", CCCYN(ch, C_NRM), k->mob_specials.LikeWork, CCNRM(ch, C_NRM));
+		send_to_char(ch, "Вероятность использования умений: %s%d%%%s. ", CCCYN(ch, C_NRM), k->mob_specials.LikeWork, CCNRM(ch, C_NRM));
+		send_to_char(ch, "Убить до начала замакса: %s%d%s\r\n", CCCYN(ch, C_NRM), k->mob_specials.MaxFactor, CCNRM(ch, C_NRM));
 		send_to_char(ch, "Умения:&c");
 		for (const auto counter : AVAILABLE_SKILLS)
 		{
@@ -3787,22 +3787,17 @@ void inspecting()
 							break;
 						}
 
-						if ((it->second->sfor == IIP
-							&& strstr(cur_log.ip, ch_log.ip))
-							|| !str_cmp(cur_log.ip, ch_log.ip))
+						if (!str_cmp(cur_log.ip, ch_log.ip))
 						{
-							sprintf(buf1 + strlen(buf1), " IP:%s%-16s%sCount:%5ld Last: %-30s%s",
-								(it->second->sfor == ICHAR ? CCBLU(ch, C_SPR) : ""),
-								cur_log.ip,
-								(it->second->sfor == ICHAR ? CCNRM(ch, C_SPR) : ""),
+							sprintf(buf1 + strlen(buf1), " IP:%s%-16s%s Количество входов с него:%5ld Последний раз: %-30s\r\n",
+								CCBLU(ch, C_SPR), cur_log.ip,  CCNRM(ch, C_SPR),
 								cur_log.count,
-								rustime(localtime(&cur_log.lasttime)),
-								(it->second->sfor == IIP ? "\r\n" : ""));
-							if (it->second->sfor == ICHAR)
+								rustime(localtime(&cur_log.lasttime)));
+/*							if (it->second->sfor == ICHAR)
 							{
 								sprintf(buf1 + strlen(buf1), "-> Count:%5ld Last : %s\r\n",
 									ch_log.count, rustime(localtime(&ch_log.lasttime)));
-							}
+							}*/
 						}
 					}
 				}
@@ -3813,7 +3808,7 @@ void inspecting()
 		{
 			const auto& player = player_table[it->second->pos];
 			mytime = player_table[it->second->pos].last_logon;
-			sprintf(buf, "Имя: %s%-12s%s e-mail: %s&S%-30s&s%s Last: %s. Level %d/%d.\r\n",
+			sprintf(buf, "--------------------\r\nИмя: %s%-12s%s e-mail: %s&S%-30s&s%s Last: %s. Level %d/%d.\r\n",
 				(is_online ? CCGRN(ch, C_SPR) : CCWHT(ch, C_SPR)),
 				player.name(),
 				CCNRM(ch, C_SPR),
@@ -5738,6 +5733,7 @@ struct set_struct		/*
 	{"tester", LVL_IMPL, PC, BINARY}, // 60
 	{"autobot",LVL_IMPL, PC, BINARY}, // 61
 	{"hryvn",LVL_IMPL, PC, NUMBER}, // 62
+	{"scriptwriter",LVL_IMPL, PC, BINARY}, // 63
 	{"\n", 0, BOTH, MISC}
 };
 
@@ -6073,7 +6069,7 @@ int perform_set(CHAR_DATA * ch, CHAR_DATA * vict, int mode, char *val_arg)
 			("Может быть 'мужчина', 'женщина', или 'бесполое'(а вот это я еще не оценил :).\r\n", ch);
 			return (0);
 		}
-		GET_SEX(vict) = static_cast<ESex>(i);
+		vict->set_sex(static_cast<ESex>(i));
 		break;
 
 	case 39:		// set age
@@ -6431,7 +6427,11 @@ int perform_set(CHAR_DATA * ch, CHAR_DATA * vict, int mode, char *val_arg)
 	case 62:
 		vict->set_hryvn(value);
 		break;
-
+	case 63: // флаг автобота
+		{
+			SET_OR_REMOVE(on, off, PLR_FLAGS(vict), PLR_SCRIPTWRITER);
+			break;
+		}
 	default:
 		send_to_char("Не могу установить это!\r\n", ch);
 		return (0);
@@ -6786,10 +6786,11 @@ namespace Mlist
 						sprintf(buf1, " [%d]", trigger_vnum);
 						out << buf1;
 					}
-					out << "\r\n";
 				}
 				else
-					out << " - нет скриптов\r\n";
+					out << " - нет скриптов";
+				sprintf(buf1, " Всего в мире: %d\r\n", mob_index[i].number);
+				out << buf1;
 			}
 		}
 

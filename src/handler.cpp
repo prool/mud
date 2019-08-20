@@ -1512,7 +1512,7 @@ void obj_to_char(OBJ_DATA * object, CHAR_DATA * ch)
 	if (object && ch)
 	{
 		restore_object(object, ch);
-		if (invalid_anti_class(ch, object) || invalid_unique(ch, object) || NamedStuff::check_named(ch, object, 0))
+		if (invalid_anti_class(ch, object) || NamedStuff::check_named(ch, object, 0))
 			may_carry = FALSE;
 		if (!may_carry)
 		{
@@ -1997,7 +1997,7 @@ void equip_char(CHAR_DATA * ch, OBJ_DATA * obj, int pos)
 		return;
 	}
 
-	if (invalid_anti_class(ch, obj))
+	if (invalid_anti_class(ch, obj) || invalid_unique(ch, obj))
 	{
 		act("Вас обожгло при попытке использовать $o3.", FALSE, ch, obj, 0, TO_CHAR);
 		act("$n попытал$u использовать $o3 - и чудом не обгорел$g.", FALSE, ch, obj, 0, TO_ROOM);
@@ -4284,7 +4284,7 @@ int get_player_charms(CHAR_DATA * ch, int spellnum)
 	{
 		r_hp = (1 - eff_cha + (int)eff_cha) * cha_app[(int)eff_cha].charms;
 	}
-
+	r_hp *= MAX( 1.0, 1.0 + (((float)ch->get_remort()-9.0)*1.2)/100.0) ;
 	return (int) r_hp;
 }
 
@@ -4547,7 +4547,7 @@ int calculate_resistance_coeff(CHAR_DATA *ch, int resist_type, int effect)
 	{
 		return effect - resistance * effect / 100;
 	}
-	if (IS_NPC(ch) && resistance >= 200)
+	if (IS_NPC(ch) && resistance > 200)
 	{
 		return 0;
 	}
@@ -4555,7 +4555,8 @@ int calculate_resistance_coeff(CHAR_DATA *ch, int resist_type, int effect)
 	{
 		resistance = MIN(75, resistance);
 	}
-	result = effect - (resistance + number(0, resistance)) * effect / 200;
+	const float divisor = IS_NPC(ch) ? 400 : 200; //иначе если у моба резист выше 100 не работает
+	result = effect - (resistance + number(0, resistance)) * effect / divisor;
 	result = MAX(0, result);
 	return result;
 }

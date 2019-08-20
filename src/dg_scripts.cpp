@@ -49,6 +49,7 @@
 #include "debug.utils.hpp"
 #include "backtrace.hpp"
 #include "coredump.hpp"
+#include "olc.h"
 
 #define PULSES_PER_MUD_HOUR     (SECS_PER_MUD_HOUR*PASSES_PER_SEC)
 
@@ -249,6 +250,7 @@ void GlobalTriggersStorage::unregister_remove_observer(TRIG_DATA* trigger, const
 	}
 }
 
+obj2trigers_t& obj2trigers = GlobalObjects::obj_trigers();
 GlobalTriggersStorage& trigger_list = GlobalObjects::trigger_list();	// all attached triggers
 
 int trgvar_in_room(int vnum)
@@ -2631,14 +2633,21 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 					str[i] = LOWER(str[i]);
 			}
 			else
-				sprintf(str, "null");
+				sprintf(str, "0");
 		}
 		else if (!str_cmp(field, "clanrank"))
 		{
 			if (CLAN(c) && CLAN_MEMBER(c))
 				sprintf(str, "%d", CLAN_MEMBER(c)->rank_num);
 			else
-				sprintf(str, "null");
+				sprintf(str, "0");
+		}
+		else if (!str_cmp(field, "clanlevel"))
+		{
+			if (CLAN(c) && CLAN_MEMBER(c))
+				sprintf(str, "%d", CLAN(c)->GetClanLevel());
+			else
+				sprintf(str, "0");
 		}
 		else if (!str_cmp(field, "m"))
 			strcpy(str, HMHR(c));
@@ -3665,7 +3674,16 @@ void find_replacement(void* go, SCRIPT_DATA* sc, TRIG_DATA* trig, int type, char
 		}
 		else if (!str_cmp(field, "name"))
 		{
-			strcpy(str, r->name);
+			if (*subfield)
+			{
+				if (r->name)
+					free(r->name);
+				if (strlen(subfield) > MAX_ROOM_NAME)
+					subfield[MAX_ROOM_NAME - 1] = '\0';
+				r->name = str_dup(subfield);
+			}
+			else 
+				strcpy(str, r->name);
 		}
 		else if (!str_cmp(field, "north"))
 		{

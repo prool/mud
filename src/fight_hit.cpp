@@ -1519,8 +1519,9 @@ bool can_auto_block(CHAR_DATA *ch)
 		return false;
 }
 
+
 // * Проверка на фит "любимое оружие".
-void HitData::check_weap_feats(CHAR_DATA *ch)
+void HitData::check_weap_feats(const CHAR_DATA* ch, int weap_skill, int& calc_thaco, int& dam)
 {
 	switch (weap_skill)
 	{
@@ -2666,7 +2667,7 @@ int Damage::process(CHAR_DATA *ch, CHAR_DATA *victim)
 			npc_groupbattle(ch);
 		}
 		// Start the victim fighting the attacker
-		if (GET_POS(victim) > POS_STUNNED && (victim->get_fighting() == NULL))
+		if (GET_POS(victim) > POS_DEAD && (victim->get_fighting() == NULL))
 		{
 			set_fighting(victim, ch);
 			npc_groupbattle(victim);
@@ -3017,11 +3018,12 @@ int Damage::process(CHAR_DATA *ch, CHAR_DATA *victim)
 	}
 
 	// Stop someone from fighting if they're stunned or worse
-	if ((GET_POS(victim) <= POS_STUNNED)
+	/*if ((GET_POS(victim) <= POS_STUNNED)
 		&& (victim->get_fighting() != NULL))
 	{
 		stop_fighting(victim, GET_POS(victim) <= POS_DEAD);
-	}
+	} */
+
 
 	// жертва умирает //
 	if (GET_POS(victim) == POS_DEAD)
@@ -3465,7 +3467,7 @@ void HitData::calc_base_hr(CHAR_DATA *ch)
 			calc_thaco -= 2;
 	}
 
-	check_weap_feats(ch);
+	check_weap_feats(ch, weap_skill, calc_thaco, dam);
 
 	if (GET_AF_BATTLE(ch, EAF_STUPOR) || GET_AF_BATTLE(ch, EAF_MIGHTHIT))
 	{
@@ -3559,19 +3561,16 @@ void HitData::calc_base_hr(CHAR_DATA *ch)
 
 	calc_thaco -= GET_REAL_HR(ch) * p_hitroll;
 	
+
 	// Использование ловкости вместо силы для попадания
 	if (can_use_feat(ch, WEAPON_FINESSE_FEAT))
 	{
-		if (wielded && GET_OBJ_WEIGHT(wielded) > 20)
-			calc_thaco -= str_bonus(GET_REAL_STR(ch), STR_TO_HIT) * p_hitroll;
-		else
-			calc_thaco -= str_bonus(GET_REAL_DEX(ch), STR_TO_HIT) * p_hitroll;
+		calc_thaco -= str_bonus(GET_REAL_STR(ch), STR_TO_HIT) * p_hitroll;
 	}
 	else
 	{
-		calc_thaco -= str_bonus(GET_REAL_STR(ch), STR_TO_HIT) * p_hitroll;
+		calc_thaco -= str_bonus(GET_REAL_DEX(ch), STR_TO_HIT) * p_hitroll;
 	}
-
 	if ((skill_num == SKILL_THROW
 			|| skill_num == SKILL_BACKSTAB)
 		&& wielded
@@ -4281,7 +4280,7 @@ void hit(CHAR_DATA *ch, CHAR_DATA *victim, int type, int weapon)
 		// выводим временно влияние живучести
 		if (PRF_FLAGGED(ch, PRF_CODERINFO) || PRF_FLAGGED(ch, PRF_TESTER))
 		{
-			sprintf(buf, "&CДамага стаба до учета живучести = %d, живучесть = %d, коэфициент разницы = %g&n\r\n", initial_dam, GET_RESIST(victim, VITALITY_RESISTANCE), float(hit_params.dam) / initial_dam);
+			sprintf(buf, "&CДамага стаба до учета живучести = %d, живучесть = %d, коэфициент разницы = %g количество хитов врага = %d&n\r\n", initial_dam, GET_RESIST(victim, VITALITY_RESISTANCE), float(hit_params.dam) / initial_dam, GET_MAX_HIT(victim));
 			send_to_char(buf,ch);
 		}
 		// режем стаб
