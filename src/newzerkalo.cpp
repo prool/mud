@@ -127,6 +127,12 @@ if (!check_moves(ch,10))
 
 //printf("prool debug: dukhmada OK\n");
 
+if (!is_rent(ch->in_room))
+	{
+	send_to_char("Вызывать духа мада можно только на ренте!\n",ch);
+	return;
+	}
+
 fp=fopen("dukhmada.cfg","r");
 if (fp==0)
 {
@@ -275,4 +281,136 @@ const auto tmp_time = boot_time + (time_t)(60 * shutdown_parameters.get_reboot_u
 send_to_char(ch, "Сервер был запущен %s\r\n", rustime(localtime(&boot_time)));
 send_to_char(ch, "Сервер будет автоматически перезагружен %s\r\n", rustime(localtime(&tmp_time)));
 return;
+}
+
+void poluchit_obj(CHAR_DATA *ch, mob_vnum vnum)
+{
+mob_rnum r_num;
+if (vnum==0) return;
+		if ((r_num = real_object(vnum)) < 0)
+		{
+			send_to_char("Дух наборов пошарил в астрале, но там оказалось пусто\r\n", ch);
+			return;
+		}
+		const auto obj = world_objects.create_from_prototype_by_rnum(r_num);
+		obj->set_crafter_uid(GET_UNIQUE(ch));
+
+#if 0  // prool: все это взято из do_load() и возможно не нужно
+		if (number == GlobalDrop::MAGIC1_ENCHANT_VNUM
+			|| number == GlobalDrop::MAGIC2_ENCHANT_VNUM
+			|| number == GlobalDrop::MAGIC3_ENCHANT_VNUM)
+		{
+			generate_magic_enchant(obj.get());
+		}
+#endif
+
+		obj_to_char(obj.get(), ch);
+
+		act("$n достал$g из астрала $o3!", FALSE, ch, obj.get(), 0, TO_ROOM);
+		act("Вы достали из астрала $o3.", FALSE, ch, obj.get(), 0, TO_CHAR);
+		load_otrigger(obj.get());
+		obj_decay(obj.get());
+		olc_log("%s nabory::load obj %s #%d", GET_NAME(ch), obj->get_short_description().c_str(), vnum);
+}
+
+void do_get_nabor (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
+{
+int 	o01, o02, o03, o04, o05, o06, o07, o08, o09, o10; 
+int 	o11, o12, o13, o14, o15, o16, o17, o18, o19, o20; 
+int	o21;
+	mob_vnum number;
+	mob_rnum r_num;
+	char buf[BUFLEN];
+	FILE *fp;
+	char *cc;
+
+//printf("char in room rnum %i\n", ch->in_room);
+
+fp=fopen("nabory.cfg","r");
+if (fp==0)
+{
+	send_to_char("В маде сейчас нет никаких наборов!\r\n", ch);
+	return;
+}
+
+if (!check_moves(ch,10))
+	{
+	fclose(fp);
+	return;
+	}
+
+if (!is_rent(ch->in_room))
+	{
+	send_to_char("Получать наборы можно только на ренте!\n",ch);
+	fclose(fp);
+	return;
+	}
+
+if (*argument==0)
+	{
+		while (1)
+			{
+			buf[0]=0;
+			fgets(buf,BUFLEN,fp);
+			if (buf[0]==0) break;
+			cc=strchr(buf,' ');
+			if (cc) *cc=0;
+			send_to_char(buf,ch);
+			send_to_char("\r\n",ch);
+			}
+	fclose(fp);
+	return;
+	}
+
+o01=0;o02=0;o03=0;o04=0;o05=0;o06=0;o07=0;o08=0;o09=0;o10=0;
+o11=0;o12=0;o13=0;o14=0;o15=0;o16=0;o17=0;o18=0;o19=0;o20=0;
+o21=0;
+
+//printf("prooldebug nabor argument='%s'\n", argument);
+while (1)
+	{
+	buf[0]=0;
+	fgets(buf,BUFLEN,fp);
+	if (buf[0]==0) break;
+	if (!memcmp(argument+1,buf,strlen(argument+1)))
+		{
+		send_to_char(buf,ch);
+		cc=strchr(buf,' ');
+		if (cc==0) cc=buf;
+		sscanf(cc,"%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+		&o01, &o02, &o03, &o04, &o05, &o06, &o07, &o08, &o09, &o10, 
+		&o11, &o12, &o13, &o14, &o15, &o16, &o17, &o18, &o19, &o20,
+	        &o21);
+		/*printf("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i\n",
+		o01, o02, o03, o04, o05, o06, o07, o08, o09, o10, 
+		o11, o12, o13, o14, o15, o16, o17, o18, o19, o20,
+	        o21);*/
+		poluchit_obj(ch, o01);
+		poluchit_obj(ch, o02);
+		poluchit_obj(ch, o03);
+		poluchit_obj(ch, o04);
+		poluchit_obj(ch, o05);
+		poluchit_obj(ch, o06);
+		poluchit_obj(ch, o07);
+		poluchit_obj(ch, o08);
+		poluchit_obj(ch, o09);
+		poluchit_obj(ch, o10);
+		poluchit_obj(ch, o11);
+		poluchit_obj(ch, o12);
+		poluchit_obj(ch, o13);
+		poluchit_obj(ch, o14);
+		poluchit_obj(ch, o15);
+		poluchit_obj(ch, o16);
+		poluchit_obj(ch, o17);
+		poluchit_obj(ch, o18);
+		poluchit_obj(ch, o19);
+		poluchit_obj(ch, o20);
+		poluchit_obj(ch, o21);
+		fclose(fp);
+		return;
+		}
+	}
+
+send_to_char("Такого набора нет. Наберите ПОЛУЧИТЬНАБОР без параметров, чтобы увидеть список доступных наборов\r\n",ch);
+fclose(fp);
 }

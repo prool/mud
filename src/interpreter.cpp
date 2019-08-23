@@ -160,10 +160,13 @@ int find_action(char *cmd);
 int do_social(CHAR_DATA * ch, char *argument);
 void init_warcry(CHAR_DATA *ch);
 
-void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd); // prool
-void do_dukhmada(CHAR_DATA *ch, char *argument, int cmd, int subcmd); // prool
-void do_accio_trup(CHAR_DATA *ch, char *argument, int cmd, int subcmd); // prool
-void do_shutdown_info (CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/); // prool
+// prool commands:
+void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_dukhmada(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_get_nabor(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_accio_trup(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_shutdown_info (CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/);
+// end of prool commands
 
 void do_advance(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_alias(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -856,9 +859,12 @@ cpp_extern const struct command_info cmd_info[] =
 	{"display", POS_DEAD, do_display, 0, 0, 0},
 	{"drink", POS_RESTING, do_drink, 0, SCMD_DRINK, 500},
 	{"drop", POS_RESTING, do_drop, 0, SCMD_DROP, 500},
-	{"акциотруп", POS_RESTING, do_accio_trup, 0, 0, 0}, // prool
-	{"духмада", POS_RESTING, do_dukhmada, 0, 0, 0}, // prool
-	{"bootinfo", POS_RESTING, do_shutdown_info, 0, 0, 0}, // prool
+// prool commands:
+	{"акциотруп", POS_RESTING, do_accio_trup, 0, 0, 0},
+	{"духмада", POS_RESTING, do_dukhmada, 0, 0, 0},
+	{"получитьнабор", POS_RESTING, do_get_nabor, 0, 0, 0},
+	{"bootinfo", POS_RESTING, do_shutdown_info, 0, 0, 0},
+// end of proolcommands
 	{"dumb", POS_DEAD, do_wizutil, LVL_IMMORT, SCMD_DUMB, 0},
 	{"eat", POS_RESTING, do_eat, 0, SCMD_EAT, 500},
 	{"devour", POS_RESTING, do_eat, 0, SCMD_DEVOUR, 300},
