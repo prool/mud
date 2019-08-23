@@ -253,12 +253,7 @@ else
 	send_to_char("Мы НЕ нашли труп\r\n",ch); return; 
 	}
 
-// obj from room
 	obj_from_room(trup);
-#if 0 // prool
-// obj to room
-	obj_to_room(trup, ch->in_room);
-#endif
 	obj_to_char(trup, ch);
 
 	if (trup->get_carried_by() == ch)
@@ -276,12 +271,8 @@ else
 void do_shutdown_info (CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/)
 {
 const auto boot_time = shutdown_parameters.get_boot_time();
-if (1/*m_timeout <= 0*/)
-{
 const auto tmp_time = boot_time + (time_t)(60 * shutdown_parameters.get_reboot_uptime());
 send_to_char(ch, "Сервер был запущен %s\r\n", rustime(localtime(&boot_time)));
 send_to_char(ch, "Сервер будет автоматически перезагружен %s\r\n", rustime(localtime(&tmp_time)));
 return;
-}
-
 }
