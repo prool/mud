@@ -4923,6 +4923,8 @@ void do_who(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 				sprintf(buf + strlen(buf), " (занят%s)", GET_CH_SUF_6(tch));
 			if (PLR_FLAGGED(tch, PLR_MUTE))
 				sprintf(buf + strlen(buf), " (молчит)");
+			if (IS_IMPL(ch)) if (PRF_FLAGGED(tch, PRF_BLIND))
+				sprintf(buf + strlen(buf), " (BLIND)"); // prool
 			if (PLR_FLAGGED(tch, PLR_DUMB))
 				sprintf(buf + strlen(buf), " (нем%s)", GET_CH_SUF_6(tch));
 			if (PLR_FLAGGED(tch, PLR_KILLER) == PLR_KILLER)
@@ -5325,7 +5327,8 @@ void do_users(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 		if (isname(host_by_name, GET_NAME(character)))
 		{
-			strcpy(host_search, d->host);
+			if (GET_LEVEL(ch) == LVL_IMPL) strcpy(host_search, d->host);
+			else strcpy(host_search,"[somewhere]"); // prool modif.
 		}
 	}
 
@@ -5356,8 +5359,9 @@ void do_users(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 					break;
 
 				case 'e':
-					if (strcoll(t ? GET_EMAIL(t) : "", t_tmp ? GET_EMAIL(t_tmp) : "") > 0)
-						flag_change = 1;
+					if (GET_LEVEL(ch) == LVL_IMPL) // prool modif.
+						if (strcoll(t ? GET_EMAIL(t) : "", t_tmp ? GET_EMAIL(t_tmp) : "") > 0)
+							flag_change = 1;
 					break;
 
 				default:
@@ -5467,7 +5471,8 @@ void do_users(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 // Хорс
 		if (d && *d->host)
 		{
-			sprintf(line2, "[%s]", d->host);
+			if (GET_LEVEL(ch) == LVL_IMPL) sprintf(line2, "[%s]", d->host);
+			else sprintf(line2, "[somewhere-2]"); // prool modif.
 			strcat(line, line2);
 		}
 		else
@@ -5477,7 +5482,7 @@ void do_users(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 		if (showemail)
 		{
-			sprintf(line2, "[&S%s&s]",
+			if (GET_LEVEL(ch) == LVL_IMPL) sprintf(line2, "[&S%s&s]", // prool modif.
 					d->original ? GET_EMAIL(d->original) : d->character ? GET_EMAIL(d->character) : "");
 			strcat(line, line2);
 		}
@@ -5526,6 +5531,7 @@ void do_users(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	sprintf(line, "\r\n%d видимых соединений.\r\n", num_can_see);
 	page_string(ch->desc, line, TRUE);
 }
+// end of do_users()
 
 // Generic page_string function for displaying text
 void do_gen_ps(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int subcmd)

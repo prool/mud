@@ -1044,7 +1044,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, 500},
 	{"uptime", POS_DEAD, do_date, 1/*LVL_IMMORT*/, SCMD_UPTIME, 0}, // prool
 	{"use", POS_SITTING, do_use, 1, SCMD_USE, 500},
-	{"users", POS_DEAD, do_users, LVL_IMMORT, 0, 0},
+	{"users", POS_DEAD, do_users, 1/*LVL_IMMORT*/, 0, 0}, // prool
 	{"value", POS_STANDING, do_not_here, 0, 0, -1},
 	{"version", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, 0},
 	{"visible", POS_RESTING, do_visible, 1, 0, -1},
