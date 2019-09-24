@@ -150,6 +150,7 @@ enum SetStuffMode
 
 //#define WHOLIST_FILE    LIB_STAT "wholist.html"	// for the stat system
 #define WHOLIST_FILE    "/var/www/newzerkalo/who.html"	// by prool
+#define WHOLIST2_FILE	LIB_STAT "who2.txt" 		// by prool
 
 //Dead load (dl_load) options
 #define DL_ORDINARY    0

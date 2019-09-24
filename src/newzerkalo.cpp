@@ -276,9 +276,12 @@ else
 
 void do_shutdown_info (CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/)
 {
+	time_t mytime;
+	mytime=time(0);
 const auto boot_time = shutdown_parameters.get_boot_time();
 const auto tmp_time = boot_time + (time_t)(60 * shutdown_parameters.get_reboot_uptime());
 send_to_char(ch, "Сервер был запущен %s\r\n", rustime(localtime(&boot_time)));
+send_to_char(ch, "Сейчас %s\r\n", rustime(localtime(&mytime)));
 send_to_char(ch, "Сервер будет автоматически перезагружен %s\r\n", rustime(localtime(&tmp_time)));
 return;
 }

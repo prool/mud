@@ -90,7 +90,10 @@ extern int top_imtypes;
 extern void show_code_date(CHAR_DATA *ch);
 extern int nameserver_is_slow; //config.cpp
 extern std::vector<City> cities;
+
+// prool:
 extern int prool_port;
+
 // extern functions
 long find_class_bitvector(char arg);
 int level_exp(CHAR_DATA * ch, int level);
@@ -4925,6 +4928,9 @@ void do_who(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 				sprintf(buf + strlen(buf), " (молчит)");
 			if (IS_IMPL(ch)) if (PRF_FLAGGED(tch, PRF_BLIND))
 				sprintf(buf + strlen(buf), " (BLIND)"); // prool
+			if (IS_IMPL(ch))
+				sprintf(buf + strlen(buf), " (MCCP %i %i)",tch->desc->deflate==NULL?0:1,
+				tch->desc->mccp_version); // prool
 			if (PLR_FLAGGED(tch, PLR_DUMB))
 				sprintf(buf + strlen(buf), " (нем%s)", GET_CH_SUF_6(tch));
 			if (PLR_FLAGGED(tch, PLR_KILLER) == PLR_KILLER)
@@ -6347,7 +6353,7 @@ void do_affects(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 }
 
 // Create web-page with users list
-void make_who2html(void)
+void make_who2html(void) // modif. by prool
 {
 	FILE *opf;
 	DESCRIPTOR_DATA *d;
@@ -6358,7 +6364,46 @@ void make_who2html(void)
 	char *morts = NULL;
 	char *buffer = NULL;
 
+	OBJ_DATA *obj;
+	CHAR_DATA *vict;
+	time_t mytime;
+	float day;
+	int i,j,k;
+
 	//printf("prool debug make_who2html. port=%i\n",prool_port); // prool
+	opf=fopen(WHOLIST2_FILE,"w");
+	if (opf) {
+		fprintf(opf,"who2 file\n");
+		for (d = descriptor_list; d; d = d->next)
+			{
+			if (STATE(d) == CON_PLAYING && GET_INVIS_LEV(d->character) < 31)
+				{
+				const auto ch = d->character;
+				fprintf(opf,"host %s\n",d->host);
+				}
+			}
+		// mob/obj statistics
+	{
+		j = 0;
+		for (const auto vict : character_list)
+		{
+			if (IS_NPC(vict))
+			{
+				j++;
+			}
+		}
+		fprintf(opf, "Mobs %5d\nprotomobs %5d\n", j, top_of_mobt + 1);
+		fprintf(opf, "Objs %5zd\nprotoobjs %5zd\n", world_objects.size(), obj_proto.size());
+		fprintf(opf, "Rooms %5d\nZones %5zd\r\n", top_of_world + 1, zone_table.size());
+	}
+		const auto boot_time = shutdown_parameters.get_boot_time();
+		mytime = time(0) - boot_time;
+		day=mytime;
+		day/=86400;
+	fprintf(opf, "MUD server uptime %.3f days\n", day);
+		fclose(opf);
+		}
+
 	if (prool_port!=4000) return; // this is test mud on !4000 port. prool
 
 	if ((opf = fopen(WHOLIST_FILE, "w")) == 0)
