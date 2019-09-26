@@ -4929,8 +4929,8 @@ void do_who(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			if (IS_IMPL(ch)) if (PRF_FLAGGED(tch, PRF_BLIND))
 				sprintf(buf + strlen(buf), " (BLIND)"); // prool
 			if (IS_IMPL(ch))
-				sprintf(buf + strlen(buf), " (MCCP %i %i)",tch->desc->deflate==NULL?0:1,
-				tch->desc->mccp_version); // prool
+				if (tch->desc->deflate)
+					sprintf(buf + strlen(buf), " (MCCP%i)", tch->desc->mccp_version); // prool
 			if (PLR_FLAGGED(tch, PLR_DUMB))
 				sprintf(buf + strlen(buf), " (нем%s)", GET_CH_SUF_6(tch));
 			if (PLR_FLAGGED(tch, PLR_KILLER) == PLR_KILLER)
@@ -5334,7 +5334,7 @@ void do_users(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		if (isname(host_by_name, GET_NAME(character)))
 		{
 			if (GET_LEVEL(ch) == LVL_IMPL) strcpy(host_search, d->host);
-			else strcpy(host_search,"[somewhere]"); // prool modif.
+			else strcpy(host_search," "); // prool modif.
 		}
 	}
 
@@ -5478,7 +5478,7 @@ void do_users(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		if (d && *d->host)
 		{
 			if (GET_LEVEL(ch) == LVL_IMPL) sprintf(line2, "[%s]", d->host);
-			else sprintf(line2, "[somewhere-2]"); // prool modif.
+			else sprintf(line2, " "); // prool modif.
 			strcat(line, line2);
 		}
 		else
