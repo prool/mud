@@ -116,7 +116,7 @@ using namespace mail;
 // мин.уровень для отправки почты
 const int MIN_MAIL_LEVEL = 2;
 // стоимость отправки письма
-const int STAMP_PRICE = 50;
+const int STAMP_PRICE = 1/*50*/; // by prool
 // макс. размер сообщения
 const int MAX_MAIL_SIZE = 4096;
 
