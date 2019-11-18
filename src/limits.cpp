@@ -49,8 +49,6 @@
 #include "sysdep.h"
 #include "conf.h"
 
-#include "newzerkalo.h" // prool
-
 #include <boost/format.hpp>
 
 extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0);
@@ -77,8 +75,6 @@ void decrease_level(CHAR_DATA * ch);
 int max_exp_gain_pc(CHAR_DATA * ch);
 int max_exp_loss_pc(CHAR_DATA * ch);
 int average_day_temp(void);
-
-void make_who2html(void); // add by prool
 
 // local functions
 int graf(int age, int p0, int p1, int p2, int p3, int p4, int p5, int p6);
@@ -849,21 +845,16 @@ void beat_points_update(int pulse)
 		}
 
 		// Гейн маны у волхвов
-		if (IS_MANA_CASTER(i)
-			&& GET_MANA_STORED(i) < GET_MAX_MANA(i))
-		{
+		if (IS_MANA_CASTER(i) && GET_MANA_STORED(i) < GET_MAX_MANA(i.get())) {
 			GET_MANA_STORED(i) += mana_gain(i);
-			if (GET_MANA_STORED(i) >= GET_MAX_MANA(i))
-			{
-				GET_MANA_STORED(i) = GET_MAX_MANA(i);
+			if (GET_MANA_STORED(i) >= GET_MAX_MANA(i.get())) {
+				GET_MANA_STORED(i) = GET_MAX_MANA(i.get());
 				send_to_char("Ваша магическая энергия полностью восстановилась\r\n", i.get());
 			}
 		}
 
-		if (IS_MANA_CASTER(i)
-			&& GET_MANA_STORED(i) > GET_MAX_MANA(i))
-		{
-			GET_MANA_STORED(i) = GET_MAX_MANA(i);
+		if (IS_MANA_CASTER(i) && GET_MANA_STORED(i) > GET_MAX_MANA(i.get())) {
+			GET_MANA_STORED(i) = GET_MAX_MANA(i.get());
 		}
 
 		// Restore moves
@@ -1175,7 +1166,7 @@ void underwater_check()
 				GET_NAME(d->character), GET_ROOM_VNUM(d->character->in_room));
 
 			Damage dmg(SimpleDmg(TYPE_WATERDEATH), MAX(1, GET_REAL_MAX_HIT(d->character) >> 2), FightSystem::UNDEF_DMG);
-			dmg.flags.set(FightSystem::NO_FLEE);
+			dmg.flags.set(FightSystem::NO_FLEE_DMG);
 
 			if (dmg.process(d->character.get(), d->character.get()) < 0)
 			{
@@ -1226,8 +1217,7 @@ void check_idling(CHAR_DATA * ch)
 				Clan::clan_invoice(ch, false);
 				sprintf(buf, "%s force-rented and extracted (idle).", GET_NAME(ch));
 				mudlog(buf, NRM, LVL_GOD, SYSLOG, TRUE);
-				printf("%s %s\n", ptime(), to_utf(buf)); // by prool
-				extract_char(ch, FALSE);		
+				extract_char(ch, FALSE);
 
 				// чара в лд уже посейвило при обрыве коннекта
 				if (ch->desc)
@@ -1240,7 +1230,7 @@ void check_idling(CHAR_DATA * ch)
 					ch->desc->character = NULL;
 					ch->desc = NULL;
 				}
-				
+
 			}
 		}
 	}
@@ -1287,7 +1277,6 @@ void hour_update(void)
 		sprintf(buf, "%sМинул час.%s\r\n", CCIRED(i->character, C_NRM), CCNRM(i->character, C_NRM));
 		SEND_TO_Q(buf, i);
 	}
-make_who2html(); // by prool
 }
 
 void room_point_update()
@@ -2089,7 +2078,7 @@ void point_update(void)
 		else if (GET_POS(i) == POS_INCAP)
 		{
 			Damage dmg(SimpleDmg(TYPE_SUFFERING), 1, FightSystem::UNDEF_DMG);
-			dmg.flags.set(FightSystem::NO_FLEE);
+			dmg.flags.set(FightSystem::NO_FLEE_DMG);
 
 			if (dmg.process(i, i) == -1)
 			{
@@ -2099,7 +2088,7 @@ void point_update(void)
 		else if (GET_POS(i) == POS_MORTALLYW)
 		{
 			Damage dmg(SimpleDmg(TYPE_SUFFERING), 2, FightSystem::UNDEF_DMG);
-			dmg.flags.set(FightSystem::NO_FLEE);
+			dmg.flags.set(FightSystem::NO_FLEE_DMG);
 
 			if (dmg.process(i, i) == -1)
 			{

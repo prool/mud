@@ -55,6 +55,7 @@
 #include "glory_const.hpp"
 #include "glory_misc.hpp"
 #include "named_stuff.hpp"
+#include "time.h"
 #if defined WITH_SCRIPTING
 #include "scripting.hpp"
 #endif
@@ -75,8 +76,6 @@
 #include "debug.utils.hpp"
 #include "global.objects.hpp"
 #include "accounts.hpp"
-
-#include "newzerkalo.h" // prool
 
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
@@ -159,14 +158,6 @@ void add_logon_record(DESCRIPTOR_DATA * d);
 int find_action(char *cmd);
 int do_social(CHAR_DATA * ch, char *argument);
 void init_warcry(CHAR_DATA *ch);
-
-// prool commands:
-void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_dukhmada(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_get_nabor(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_accio_trup(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
-void do_shutdown_info (CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/);
-// end of prool commands
 
 void do_advance(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_alias(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
@@ -593,7 +584,8 @@ cpp_extern const struct command_info cmd_info[] =
 	{"изучить", POS_SITTING, do_learn, 0, 0, 0},
 	{"информация", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, 0},
 	{"испить", POS_RESTING, do_use, 0, SCMD_QUAFF, 500},
-	{"имя", POS_SLEEPING, do_name, 2/*LVL_IMMORT*/, 0, 0}, // prool
+	{"использовать", POS_RESTING, do_style, 0, 0, 0},
+	{"имя", POS_SLEEPING, do_name, LVL_IMMORT, 0, 0},
 
 	{"колдовать", POS_SITTING, do_cast, 1, 0, -1},
 	{"казна", POS_RESTING, do_not_here, 1, 0, 0},
@@ -620,7 +612,7 @@ cpp_extern const struct command_info cmd_info[] =
 
 	{"маскировка", POS_RESTING, do_camouflage, 0, 0, 500},
 	{"магазины", POS_DEAD, do_shops_list, LVL_IMMORT, 0, 0},
-	{"метнуть", POS_FIGHTING, do_throw, 0, 0, -1},
+	{"метнуть", POS_FIGHTING, do_throw, 0, SCMD_PHYSICAL_THROW, -1},
 	{"менять", POS_STANDING, do_not_here, 0, 0, -1},
 	{"месть", POS_RESTING, do_revenge, 0, 0, 0},
 	{"молот", POS_FIGHTING, do_mighthit, 0, 0, -1},
@@ -788,6 +780,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"стиль", POS_RESTING, do_style, 0, 0, 0},
 	{"строка", POS_DEAD, do_display, 0, 0, 0},
 	{"счет", POS_DEAD, do_score, 0, 0, 0},
+	{"тень", POS_FIGHTING, do_throw, 0, SCMD_SHADOW_THROW, -1},
 	{"титул", POS_DEAD, TitleSystem::do_title, 0, 0, 0},
 	{"трусость", POS_DEAD, do_wimpy, 0, 0, 0},
 	{"убить", POS_FIGHTING, do_kill, 0, 0, -1},
@@ -849,7 +842,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"commands", POS_DEAD, do_commands, 0, SCMD_COMMANDS, 0},
 	{"consider", POS_RESTING, do_consider, 0, 0, 500},
 	{"credits", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, 0},
-	{"date", POS_DEAD, do_date, 1 /*LVL_IMMORT*/, SCMD_DATE, 0}, // prool
+	{"date", POS_DEAD, do_date, LVL_IMMORT, SCMD_DATE, 0},
 	{"dc", POS_DEAD, do_dc, LVL_GRGOD, 0, 0},
 	{"deposit", POS_STANDING, do_not_here, 1, 0, 500},
 	{"deviate", POS_FIGHTING, do_deviate, 0, 0, -1},
@@ -859,12 +852,6 @@ cpp_extern const struct command_info cmd_info[] =
 	{"display", POS_DEAD, do_display, 0, 0, 0},
 	{"drink", POS_RESTING, do_drink, 0, SCMD_DRINK, 500},
 	{"drop", POS_RESTING, do_drop, 0, SCMD_DROP, 500},
-// prool commands:
-	{"акциотруп", POS_RESTING, do_accio_trup, 0, 0, 0},
-	{"духмада", POS_RESTING, do_dukhmada, 0, 0, 0},
-	{"получитьнабор", POS_RESTING, do_get_nabor, 0, 0, 0},
-	{"bootinfo", POS_RESTING, do_shutdown_info, 0, 0, 0},
-// end of proolcommands
 	{"dumb", POS_DEAD, do_wizutil, LVL_IMMORT, SCMD_DUMB, 0},
 	{"eat", POS_RESTING, do_eat, 0, SCMD_EAT, 500},
 	{"devour", POS_RESTING, do_eat, 0, SCMD_DEVOUR, 300},
@@ -878,7 +865,6 @@ cpp_extern const struct command_info cmd_info[] =
 	{"exits", POS_RESTING, do_exits, 0, 0, 500},
 	{"featset", POS_SLEEPING, do_featset, LVL_IMPL, 0, 0},
 	{"features", POS_SLEEPING, do_features, 0, 0, 0},
-	{"fflush", POS_DEAD, do_fflush, LVL_IMMORT, 0, 0}, // prool
 	{"fill", POS_STANDING, do_pour, 0, SCMD_FILL, 500},
 	{"fit", POS_RESTING, do_fit, 0, SCMD_DO_ADAPT, 500},
 	{"flee", POS_FIGHTING, do_flee, 1, 0, -1},
@@ -998,7 +984,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"settle", POS_STANDING, do_not_here, 1, 0, -1},
 	{"shout", POS_RESTING, do_gen_comm, 0, SCMD_SHOUT, -1},
 	{"show", POS_DEAD, do_show, LVL_IMMORT, 0, 0},
-	
+
 	{"shutdown", POS_DEAD, do_shutdown, LVL_IMPL, SCMD_SHUTDOWN, 0},
 	{"sip", POS_RESTING, do_drink, 0, SCMD_SIP, 500},
 	{"sit", POS_RESTING, do_sit, 0, 0, -1},
@@ -1042,9 +1028,9 @@ cpp_extern const struct command_info cmd_info[] =
 	{"unfreeze", POS_DEAD, do_unfreeze, LVL_IMPL, 0, 0},
 	{"ungroup", POS_DEAD, do_ungroup, 0, 0, -1},
 	{"unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, 500},
-	{"uptime", POS_DEAD, do_date, 1/*LVL_IMMORT*/, SCMD_UPTIME, 0}, // prool
+	{"uptime", POS_DEAD, do_date, LVL_IMMORT, SCMD_UPTIME, 0},
 	{"use", POS_SITTING, do_use, 1, SCMD_USE, 500},
-	{"users", POS_DEAD, do_users, 1/*LVL_IMMORT*/, 0, 0}, // prool
+	{"users", POS_DEAD, do_users, LVL_IMMORT, 0, 0},
 	{"value", POS_STANDING, do_not_here, 0, 0, -1},
 	{"version", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, 0},
 	{"visible", POS_RESTING, do_visible, 1, 0, -1},
@@ -1092,8 +1078,8 @@ cpp_extern const struct command_info cmd_info[] =
 
 	{ "attach", POS_DEAD, do_attach, LVL_IMPL, 0, 0 },
 	{ "detach", POS_DEAD, do_detach, LVL_IMPL, 0, 0 },
-	{ "tlist", POS_DEAD, do_tlist, LVL_GRGOD, 0, 0 },
-	{ "tstat", POS_DEAD, do_tstat, LVL_GRGOD, 0, 0 },
+	{ "tlist", POS_DEAD, do_tlist, 0, 0, 0 },
+	{ "tstat", POS_DEAD, do_tstat, 0, 0, 0 },
 	{ "vdelete", POS_DEAD, do_vdelete, LVL_IMPL, 0, 0 },
 	{ "debug_queues", POS_DEAD, do_debug_queues, LVL_IMPL, 0, 0 },
 
@@ -1837,24 +1823,13 @@ int special(CHAR_DATA * ch, int cmd, char *arg, int fnum)
 	// special in inventory? //
 	for (i = ch->carrying; i; i = i->get_next_content())
 	{
-
-	if (GET_OBJ_SPEC(i)!=NULL) // prool's
-	{
-		if (/*GET_OBJ_SPEC(i) != NULL
-			&& */ GET_OBJ_SPEC(i)(ch, i, cmd, arg))
+		if (GET_OBJ_SPEC(i) != NULL
+			&& GET_OBJ_SPEC(i)(ch, i, cmd, arg))
 		{
 			check_hiding_cmd(ch, -1);
 			return (1);
 		}
 	}
-#if 0 // prool
-	else
-		{
-		printf("prool debug: hernya in inventory\n");
-		}
-#endif
-
-	} // end for
 
 	// special in mobile present? //
 //Polud чтобы продавцы не мешали друг другу в одной комнате, предусмотрим возможность различать их по номеру
@@ -2093,7 +2068,6 @@ int perform_dupe_check(DESCRIPTOR_DATA * d)
 		check_light(d->character.get(), LIGHT_NO, LIGHT_NO, LIGHT_NO, LIGHT_NO, 1);
 		act("$n восстановил$g связь.", TRUE, d->character.get(), 0, 0, TO_ROOM);
 		sprintf(buf, "%s [%s] has reconnected.", GET_NAME(d->character), d->host);
-		printf("%s %s [%s] reconnected\n", ptime(), to_utf((char *)GET_NAME(d->character)),d->host); // prool
 		mudlog(buf, NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 		login_change_invoice(d->character.get());
 		break;
@@ -2142,7 +2116,6 @@ int pre_help(CHAR_DATA * ch, char *arg)
 // и просто еще до иммов не достучались лимит поднять... вобщем сидит тот, кто не успел Ж)
 int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 {
-	return 1; // prool: no check IP dupes
 	if (!d->character || IS_IMMORTAL(d->character))
 		return 1;
 
@@ -2170,13 +2143,12 @@ int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 			&& (STATE(i) == CON_PLAYING
 				|| STATE(i) == CON_MENU))
 		{
-			switch (2/*CheckProxy(d)*/) // prool: proxy enabled
+			switch (CheckProxy(d))
 			{
 			case 0:
 				// если уже сидим в проксе, то смысла спамить никакого
-				// prool: multing enabled
-				if (1/*IN_ROOM(d->character) == r_unreg_start_room
-					|| d->character->get_was_in_room() == r_unreg_start_room*/)
+				if (IN_ROOM(d->character) == r_unreg_start_room
+					|| d->character->get_was_in_room() == r_unreg_start_room)
 				{
 					return 0;
 				}
@@ -2212,7 +2184,6 @@ int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 
 int check_dupes_email(DESCRIPTOR_DATA * d)
 {
-	return 1; // prool: no check email dupes
 	if (!d->character
 		|| IS_IMMORTAL(d->character))
 	{
@@ -2254,7 +2225,7 @@ void add_logon_record(DESCRIPTOR_DATA * d)
 	if (logon == LOGON_LIST(d->character).end())
 	{
 		const logon_data cur_log = { str_dup(d->host), 1, time(0), false };
-		LOGON_LIST(d->character).push_back(cur_log);			
+		LOGON_LIST(d->character).push_back(cur_log);
 	}
 	else
 	{
@@ -2462,45 +2433,51 @@ void do_entergame(DESCRIPTOR_DATA * d)
 	Clan::clan_invoice(d->character.get(), true);
 
 	// Чистим стили если не знаем их
+	if (PRF_FLAGS(d->character).get(PRF_SHADOW_THROW)) {
+		PRF_FLAGS(d->character).unset(PRF_SHADOW_THROW);
+	}
+
 	if (PRF_FLAGS(d->character).get(PRF_PUNCTUAL)
-		&& !d->character->get_skill(SKILL_PUNCTUAL))
-	{
+		&& !d->character->get_skill(SKILL_PUNCTUAL)) {
 		PRF_FLAGS(d->character).unset(PRF_PUNCTUAL);
 	}
 
 	if (PRF_FLAGS(d->character).get(PRF_AWAKE)
-		&& !d->character->get_skill(SKILL_AWAKE))
-	{
+		&& !d->character->get_skill(SKILL_AWAKE)) {
 		PRF_FLAGS(d->character).unset(PRF_AWAKE);
 	}
 
 	if (PRF_FLAGS(d->character).get(PRF_POWERATTACK)
-		&& !can_use_feat(d->character.get(), POWER_ATTACK_FEAT))
-	{
+		&& !can_use_feat(d->character.get(), POWER_ATTACK_FEAT)) {
 		PRF_FLAGS(d->character).unset(PRF_POWERATTACK);
 	}
 
 	if (PRF_FLAGS(d->character).get(PRF_GREATPOWERATTACK)
-		&& !can_use_feat(d->character.get(), GREAT_POWER_ATTACK_FEAT))
-	{
+		&& !can_use_feat(d->character.get(), GREAT_POWER_ATTACK_FEAT)) {
 		PRF_FLAGS(d->character).unset(PRF_GREATPOWERATTACK);
 	}
 
 	if (PRF_FLAGS(d->character).get(PRF_AIMINGATTACK)
-		&& !can_use_feat(d->character.get(), AIMING_ATTACK_FEAT))
-	{
+		&& !can_use_feat(d->character.get(), AIMING_ATTACK_FEAT)) {
 		PRF_FLAGS(d->character).unset(PRF_AIMINGATTACK);
 	}
 
 	if (PRF_FLAGS(d->character).get(PRF_GREATAIMINGATTACK)
-		&& !can_use_feat(d->character.get(), GREAT_AIMING_ATTACK_FEAT))
-	{
+		&& !can_use_feat(d->character.get(), GREAT_AIMING_ATTACK_FEAT)) {
 		PRF_FLAGS(d->character).unset(PRF_GREATAIMINGATTACK);
 	}
-
-	// Gorrah: сбрасываем флаг от скилла, если он каким-то чудом засэйвился
-	if (PRF_FLAGS(d->character).get(PRF_IRON_WIND))
-	{
+	if (PRF_FLAGS(d->character).get(PRF_DOUBLE_THROW)
+		&& !can_use_feat(d->character.get(), DOUBLE_THROW_FEAT)) {
+		PRF_FLAGS(d->character).unset(PRF_DOUBLE_THROW);
+	}
+	if (PRF_FLAGS(d->character).get(PRF_TRIPLE_THROW)
+		&& !can_use_feat(d->character.get(), TRIPLE_THROW_FEAT)) {
+		PRF_FLAGS(d->character).unset(PRF_TRIPLE_THROW);
+	}
+	if (PRF_FLAGS(d->character).get(PRF_SKIRMISHER)) {
+		PRF_FLAGS(d->character).unset(PRF_SKIRMISHER);
+	}
+	if (PRF_FLAGS(d->character).get(PRF_IRON_WIND)) {
 		PRF_FLAGS(d->character).unset(PRF_IRON_WIND);
 	}
 
@@ -2510,14 +2487,14 @@ void do_entergame(DESCRIPTOR_DATA * d)
 		if (!HAVE_FEAT(d->character, i)
 			|| can_get_feat(d->character.get(), i))
 		{
-			if (feat_info[i].natural_classfeat[(int) GET_CLASS(d->character)][(int) GET_KIN(d->character)])
+			if (feat_info[i].inbornFeatureOfClass[(int) GET_CLASS(d->character)][(int) GET_KIN(d->character)])
 			{
 				SET_FEAT(d->character, i);
 			}
 		}
 	}
 
-	set_race_feats(d->character.get());
+	setFeaturesOfRace(d->character.get());
 
 	//нефиг левыми скиллами размахивать если не имм
 	if (!IS_IMMORTAL(d->character))
@@ -2619,8 +2596,6 @@ void do_entergame(DESCRIPTOR_DATA * d)
 		sprintf(buf, "%s вошли в игру.", GET_NAME(d->character));
 		break;
 	}
-
-	printf("%s %s\n", ptime(), to_utf(buf)); // prool
 
 	mudlog(buf, NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 	look_at_room(d->character.get(), 0);
@@ -2756,8 +2731,6 @@ void DoAfterPassword(DESCRIPTOR_DATA * d)
 
 	log("%s [%s] has connected.", GET_NAME(d->character), d->host);
 
-	printf("%s %s [%s] has connected\n", ptime(), to_utf((char *)GET_NAME(d->character)), d->host); // prool
-
 	if (load_result)
 	{
 		sprintf(buf, "\r\n\r\n\007\007\007"
@@ -2776,7 +2749,7 @@ void DoAfterPassword(DESCRIPTOR_DATA * d)
 	if (!ValidateStats(d))
 	{
 		return;
-	}	
+	}
 
 	SEND_TO_Q("\r\n* В связи с проблемами перевода фразы ANYKEY нажмите ENTER *", d);
 	STATE(d) = CON_RMOTD;
@@ -2944,8 +2917,6 @@ void DoAfterEmailConfirm(DESCRIPTOR_DATA *d)
 	d->character->get_account()->set_last_login();
 	d->character->get_account()->add_player(GetUniqueByName(d->character->get_name()));
 
-	printf("%s %s [%s] new player\n", ptime(), to_utf((char *)GET_NAME(d->character)), d->host); // prool
-
 	// добавляем в список ждущих одобрения
 	if (!(int)NAME_FINE(d->character))
 	{
@@ -3037,7 +3008,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 			}
 			sprintf(buf, "Online: %d\r\n", online_players);
 		}
-	
+
 		SEND_TO_Q(buf, d);
 		ShowEncodingPrompt(d, false);
 		STATE(d) = CON_GET_KEYTABLE;
@@ -3851,28 +3822,23 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 			SEND_TO_Q("\r\nНекорректный E-mail!" "\r\nВаш E-mail :  ", d);
 			return;
 		}
-		#ifdef TEST_BUILD			
+		#ifdef TEST_BUILD
 		strncpy(GET_EMAIL(d->character), arg, 127);
 		*(GET_EMAIL(d->character) + 127) = '\0';
 		lower_convert(GET_EMAIL(d->character));
 		DoAfterEmailConfirm(d);
 		break;
 		#endif
-		{char prool_buf[512];
-			int random_number = number(100, 999);
-			//printf("code=%i\r\n", random_number); // prool
-			snprintf(prool_buf,512,"Код %i\r\n", random_number);
-			SEND_TO_Q(prool_buf, d);
+		{
+			int random_number = number(1000000, 9999999);
 			new_char_codes[d->character->get_pc_name()] = random_number;
 			strncpy(GET_EMAIL(d->character), arg, 127);
 			*(GET_EMAIL(d->character) + 127) = '\0';
 			lower_convert(GET_EMAIL(d->character));
 			std::string cmd_line = str(boost::format("python3 send_code.py %s %d &") % GET_EMAIL(d->character) % random_number);
-#if 0 // prool
 			auto result = system(cmd_line.c_str());
 			UNUSED_ARG(result);
-#endif // prool
-			SEND_TO_Q("\r\nВведите показанный выше код, пожалуйста: \r\n", d);
+			SEND_TO_Q("\r\nВам на электронную почту был выслан код. Введите его, пожалуйста: \r\n", d);
 			STATE(d) = CON_RANDOM_NUMBER;
 		}
 		break;
@@ -3891,8 +3857,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 	case CON_RANDOM_NUMBER:
 		{
 			int code_rand = atoi(arg);
-			// prool modif: no code
-			
+
 			if (new_char_codes.count(d->character->get_pc_name()) != 0)
 			{
 				if (new_char_codes[d->character->get_pc_name()] != code_rand)
@@ -3904,7 +3869,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 				DoAfterEmailConfirm(d);
 				break;
 			}
-#if 1 // tyt byl prool
+
 			if (new_loc_codes.count(GET_EMAIL(d->character)) == 0)
 			{
 				break;
@@ -3916,7 +3881,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 				STATE(d) = CON_CLOSE;
 				break;
 			}
-#endif // prool
+
 			new_loc_codes.erase(GET_EMAIL(d->character));
 			add_logon_record(d);
 			DoAfterPassword(d);
@@ -3982,7 +3947,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 
 			SEND_TO_Q("Введите описание вашего героя, которое будет выводиться по команде <осмотреть>.\r\n", d);
 			SEND_TO_Q("(/s сохранить /h помощь)\r\n", d);
-			
+
 			d->writer.reset(new DelegatedStdStringWriter(d->character->player_data.description));
 			d->max_str = EXDSCR_LENGTH;
 			STATE(d) = CON_EXDESC;
@@ -4576,6 +4541,22 @@ long GetUniqueByName(const std::string & name, bool god)
 	return 0;
 }
 
+bool IsActiveUser(long unique)
+{
+	time_t currTime = time(0);
+	time_t charLogon ;
+	int inactivityDelay = /* day*/ (3600  * 24)  * /*days count*/ 60;
+	for (std::size_t i = 0; i < player_table.size(); ++i)
+	{
+		if (player_table[i].unique == unique)
+		{
+			charLogon = player_table[i].last_logon;
+			return  currTime - charLogon < inactivityDelay ;
+		}
+	}
+	return false;
+}
+
 // ищет имя игрока по его УИДу, второй необязательный параметр - учитывать или нет БОГОВ
 std::string GetNameByUnique(long unique, bool god)
 {
@@ -4774,10 +4755,5 @@ bool who_spamcontrol(CHAR_DATA *ch, unsigned short int mode = WHO_LISTALL)
 	return false;
 }
 
-void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd) // prool
-{
-	fflush(0);
-	send_to_char("fflush!\r\n", ch);
-}
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

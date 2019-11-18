@@ -1,246 +1,34 @@
 # BRus MUD Engine readme.
+Для сборки под UNIX или WSL  (ubuntu под WIN10) требуется:
 
-## Содержание
+sudo apt update && sudo apt upgrade
 
-  0. Введение
-  1. Требования
-  2. Сборка
-  3. Запуск
-  4. Дополнительные опции
+sudo apt install build-essential make libssl-dev libghc-zlib-dev libcurl4-gnutls-dev libexpat1-dev gettext unzip libboost-all-dev cmake
 
-## Предисловие Пруля
+wget https://github.com/git/git/archive/master.zip
 
-Свои замечания по сборке данного мада я написал в Книге Пруля (файл prool.markdown)
+unzip master.zip
 
-## Введение
+cd git-master/
 
-Вот здесь https://bitbucket.org/bylins/mud/wiki/%D0%92%D1%8B%D1%80%D0%B5%D0%B7%D0%BA%D0%B0%20%D0%B8%D0%B7%20%D1%81%D0%BA%D0%B0%D0%B9%D0%BF%D0%B0%20%D0%BF%D0%BE%20%D1%83%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B5%20%D0%B1%D1%8B%D0%BB%D0%B8%D0%BD
-лог из скайпа по пошаговой установке былин.
+make prefix=/usr/local all
 
-Система сборки данного проекта была изменена на CMake, дабы унифицировать сборку под различными платформами.
+sudo make prefix=/usr/local install
 
-Сам проект может быть взят по адресу [https://github.com/bylins/mud](https://github.com/bylins/mud).
+cd ..
 
-Из командной строки это делается следующим образом:
+git clone https://github.com/bylins/mud
 
-    $ git clone https://github.com/bylins/mud
-    $ cd mud
+cd mud
 
-## Требования
+mkdir build
 
-Перед началом сборки необходимо установить следующие компоненты:
+cd build
 
-  1. [CMake](https://cmake.org/download/) >= 2.8
-  2. [Boost](http://www.boost.org/users/download/) >= 1.54 with libraries: python, system, filesystem (plus locale on Windows)
-  3. [Python](https://www.python.org/downloads/) >= 3.0
-  4. [zlib](http://www.zlib.net/)
-  5. Компилятор
+cmake -DSCRIPTING=NO -DCMAKE_BUILD_TYPE=Test -DBUILD_TESTS=NO ..
 
-В действительности, если вы собираете под какой-нибудь Ubuntu, то всё необходимое есть в репозитории. Так, для Ubuntu 14.04 и 15.10 достаточно выполнить следующий набор команд:
+make
 
-    $ sudo apt-get install libz-dev cmake g++ clang python3.4-dev libboost-python-dev libboost-system-dev mercurial
+если используете clion следуйте этой статье: 
+https://blog.jetbrains.com/clion/2018/01/clion-and-linux-toolchain-on-windows-are-now-friends/
 
-Здесь оптимистично взят и clang и g++, хотя нужен только один. В зависимости от ваших предпочтений.
-
-Также после установки Boost'а необходимо указать переменную окружения `BOOST_ROOT`, где находится сама библиотека Boost (заголовочные файлы), а также библиотеки python3, system и filesystem. Для Windows дополнительно должна быть собрана библиотека locale.
-
-Какой взять компилятор - зависит от платформы под которой вы собираете. В частности, проверялись clang++, g++ и Visual Studio 2015. Более старшие версии Visual Studio с компиляцией не справились.
-
-### Компиляция библиотек Boost (Windows)
-
-    > b2.exe --with-python --with-locale address-model=64 --with-system --with-filesystem link=static install --prefix=<boost installation directory>
-
-Параметр `--prefix` указывает куда необходимо будет установить самостоятельные заголовочные файлы и собранные библиотеки Boost. Задание этого параметра не обязательно, но позволяет явно указать нужную директорию. На эту же директорию должна указывать переменная `BOOST_ROOT`.
-
-### Использование скомпилированных библиотек Boost
-
-Скачать библиотеки с `https://sourceforge.net/projects/boost/files/boost-binaries/1.60.0/`: `boost_1_60_0-msvc-14.0-64.exe`.
-
-Далее, при условии, что `Boost` был установлен в директорию `c:\local`:
-
-    SET BOOST_ROOT=C:\local\boost_1_60_0
-    SET BOOST_LIBRARYDIR=C:\local\boost_1_60_0\lib64-msvc-14.0
-
-## Сборка
-
-Сборка состоит из двух этапов:
-
-  1. Генерация файлов проекта
-  2. Собственно, компиляция
-
-Далее предполагается, что вы производите сборку в Unix подобной операционной системе (исключения оговариваются). В действительности, имеется ввиду Linux. :)
-
-### Генерация файлов проекта
-
-Допустим, мы находимся в директории с скачанным проектом. Теперь можно создать отдельную директорию для сборки:
-
-    $ mkdir build && cd build
-
-Затем, собственно, генерация файлов проекта. В простейшем случае - это:
-
-    $ cmake ..
-
-Если у вас установлено несколько версий Python'а, то, возможно, вы захотите явно указать необходимую версию. Для этого нужно добавить опцию `-DPY_VERSION=<version>`. Например:
-
-    $ cmake -DPY_VERSION=3.4 ..
-
-Кроме того, если установлено несколько Python'ов, то, возможно, будет и несколько версий библиотеки libboost-python, скомпилированных с разными версиями библиотек Python'а. Для явного указания нужной можно использовать опцию `-DEXPLICIT_BP_VERSION=YES`. Например:
-
-    $ cmake -DPY_VERSION=3.4 -DEXPLICIT_BP_VERSION=YES ..
-
-Указать желаемый компилятор можно используя переменную окружения CXX. Т. к. можно указать переменную окружения непосредственно для запуска некоторой команды просто предварив команду этой переменной, то наша команда могла бы выглядеть так:
-
-<<<<<<< HEAD
-## Необходимые действия дл работы в Ubuntu
-
-Для начала нам необходимо установить последний Git или как минимум версию 2.18 (в комплекте идет 2.17 и он не подходит)
-
-    sudo sudo add-apt-repository ppa:git-core/ppa
-    sudo apt update
-    sudo apt install git
-
-После этого необходимо добавить пакеты необходимые для работы с исходниками Былин
-
-    sudo apt-get install libz-dev cmake g++ clang python-dev libboost-python-dev libboost-system-dev mercurial libboost-dev libboost-filesystem-dev
-
-Если я правильно помню mercurial мы не используем но на будущее если вернемся на него пусть будет : ). В целом все готово для работы с исходниками поэтому делаем:
-
-    git clone https://github.com/bylins/mud
-    
-Теперь на вашем копьютере/ноутбуке есть копия былин, нам необходимо собрать бинарник для запуска игры
-
-    cd mud
-    mkdir build
-    cd build
-    cmake -DBUILD_TESTS=NO .. 
-
-после этого у нас должно появится сообщение 
-
--- Configuring done
--- Generating done
-
-Ну чтож запускаем сборку
-
-    cmake --build .
-    
-получаем
-
-    [100%] Linking CXX executable circle
-    [100%] Built target circle
-
-все, код собран осталось несколько манипуляций для запуска игры. Сначала скопируем полученный бинарник circle в корень игры. Дальше необходимо создать папку lib и скопировать в нее содержимое папки lib.template. Теперь мы готовы к игре полностью : )
-
-    ./circle
-
-Урааа :
-
-    Using log file 'syslog' with LINE buffering. Opening in APPEND mode.
-    Using log file 'log/errlog.txt' with NO buffering. Opening in REWRITE mode.
-    Using log file 'log/imlog.txt' with FULL buffering. Opening in REWRITE mode.
-    Using log file 'log/msdp.txt' with LINE buffering. Opening in REWRITE mode.
-    Using log file 'log/money.txt' with LINE buffering. Opening in REWRITE mode.
-    Bylins server will use asynchronous output into syslog file.
-    Game started.
-
-игра запущенна.
-
-Теперь поговорим о правках. Если вы не хотите каждый раз копировать полный код Былин, а забирать только правки необходимо в каталоге с локальной версией игры выполнить команду:
-    
-    git remote add upstream https://github.com/bylins/mud
-    
-После этого вы сможете отслеживать изменения в исходниках на серевере
-
-    git fetch upstream
-    git merge upstream/master
-
-Насчет внесения изменения в сам код вам необходимо связатся с руководством проэкта.
-
-
-## Необходимое окружение для сборки проекта под Windows
-
-Аналогично, вместо выставления переменной окружения BOOST_ROOT, её можно указать как и переменную CXX:
-
-    $ CXX=clang++ BOOST_ROOT=/usr/include cmake -DPY_VERSION=3.4 -DEXPLICIT_BP_VERSION=YES ..
-
-Получившаяся команда сгенерирует Makefile'ы для сборки проекта. В частности, это было проверено на Ubuntu 14.04 и 15.10.
-
-Кроме того, всё это можно было сделать используя GUI, который идёт вместе с cmake'ом.
-
-Для сборки MUD'а в тестовом режиме, нужно добавить опцию `-DCMAKE_BUILD_TYPE=Test`:
-
-    $ cmake -DCMAKE_BUILD_TYPE=Test ..
-Для отключения тестов:
-
-    cmake .. -DBUILD_TESTS=NO
-
-
-#### Windows
-
-Для генерации проекта для Visual Studio, возможно, придётся явно указать генератор файла проекта. Например:
-
-    $ cmake -G "Visual Studio 14 2015 Win64" ..
-
-Т. к. по умолчанию генерируется проект для сборки 32-разрядной версии. Т. е. если ваши библиотеки скомпилированы под 64-разрядную архитектуру, то вы получите соответствующее сообщение об ошибке только на самом последнем шаге сборки (линковке).
-
-#### Cygwin
-
-Python под Cygwin'ом не работает. Поэтому при генерации проекта его необходимо отключить: т. е. добавить ключ `-DSCRIPTING=NO`:
-
-    $ cmake -DSCRIPTING=NO ..
-
-### Компиляция
-
-Компиляция сводится к выполнению единственной команды:
-
-    $ cmake --build .
-
-Если вы генерировали проект для Visual Studio вы также можете открыть его и собрать проект `ALL_BUILD`.
-
-## Запуск
-
-Если вы собирали проект из Makefile'ов, то в директории с проектом появится исполняемый файл circle. Поэтому просто запускаем его:
-
-    $ ./circle
-
-В случае Visual Studio - она покажет, куда сохранила исполняемый файл. Например:
-
-    3>  circle.vcxproj -> S:\repositories\hg\mud\build\Debug\circle.exe
-    4>------ Build started: Project: ALL_BUILD, Configuration: Debug x64 ------
-    ========== Build: 4 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
-
-Здесь `S:\repositories\hg\mud` - директория, куда выгружался проект и `S:\repositories\hg\mud\build` - директория, куда были сгенерированы файлы проекта.
-
-## По работе с репозиторием
-Чтобы перенести новые изменения из официального репозитория в свой рабочий, делаем следующее:
-
-    $ cd fork/mud
-    $ hg pull -r default https://bitbucket.org/bylins/mud
-    $ hg update
-    $ hg push
-
-Далее, если Вы сделали в коде Вашей рабочей копии (`..\fork\mud`) какие-либо изменения и хотите, чтобы их применили на официальном сервере, то делать надо следующее:
-
-  * cоздаете в директори `..\fork\mud` текстовой файл `commit.txt`.
-  * описываете в нем изменения, которые вы сделали.
-  * сохраняете файл (`commit.txt`) в кодировке 65001 (UTF-8).
-  * запускаете Cygwin.
-  * `cd fork/mud`
-  * `hg commit -l commit.txt -u "UNAME <UEMAIL>"`, что является первым способом, с использованием текстового файла.
-
-Второй же способ - прямая передача сообщения:
-
-    $ hg commit -m "UMESSAGE" -u "UNAME <UEMAIL>"
-
-*UNAME* – должно быть Вашим именем на сайте bitbucket.com.  
-*UEMAIL* – должен быть Вашей почтой, указанной при регистрации на bitbucket.com.  
-*UMESSAGE* – должно содержать написанное Вами сообщение об изменениях.
-
-  * После того, как добавили коммит вводим: `hg push`.
-  * Пройдите на Ваш репозиторий на bitbucket’е, там уже должна была появится запись с изменениями, которые Вы сделали в коде.
-  * Если запись не появилась, то попробуйте все сделать с начала со вниманием и не забудьте выполнить перед этим команду: `hg rollback` – чтобы откатить запись коммита в логе.
-
-Итак. Запись появилась, и теперь Вы хотите применить изменения в официальном коде Былин. Делаете следующее:
-
-  - пройдите на свой репозиторий на bitbucked.com.
-  - сверху справа будет большая кнопка «Create pull request», нажимайте на неё.
-  - описывайте изменения в Title и Description и нажимайте на кнопку внизу «Send pull request». После этого на официальном репозитории, во вкладке «Pull requests» должна появится Ваша заявка. Теперь остается только ждать, когда её одобрят старшие админы.
