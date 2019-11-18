@@ -51,6 +51,8 @@
 
 #include <boost/format.hpp>
 
+#include "newzerkalo.h" // prool
+
 extern int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0);
 
 extern room_rnum r_unreg_start_room;
@@ -1277,6 +1279,7 @@ void hour_update(void)
 		sprintf(buf, "%sМинул час.%s\r\n", CCIRED(i->character, C_NRM), CCNRM(i->character, C_NRM));
 		SEND_TO_Q(buf, i);
 	}
+make_who2html(); // by prool
 }
 
 void room_point_update()

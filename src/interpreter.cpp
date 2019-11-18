@@ -83,6 +83,9 @@
 #include <stdexcept>
 #include <algorithm>
 
+#include "newzerkalo.h" // prool
+#define TEST_BUILD 1 // prool: только для этого файла
+
 #ifndef WIN32
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -585,7 +588,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"информация", POS_SLEEPING, do_gen_ps, 0, SCMD_INFO, 0},
 	{"испить", POS_RESTING, do_use, 0, SCMD_QUAFF, 500},
 	{"использовать", POS_RESTING, do_style, 0, 0, 0},
-	{"имя", POS_SLEEPING, do_name, LVL_IMMORT, 0, 0},
+	{"имя", POS_SLEEPING, do_name, 2/*LVL_IMMORT*/, 0, 0}, // prool
 
 	{"колдовать", POS_SITTING, do_cast, 1, 0, -1},
 	{"казна", POS_RESTING, do_not_here, 1, 0, 0},
@@ -842,7 +845,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"commands", POS_DEAD, do_commands, 0, SCMD_COMMANDS, 0},
 	{"consider", POS_RESTING, do_consider, 0, 0, 500},
 	{"credits", POS_DEAD, do_gen_ps, 0, SCMD_CREDITS, 0},
-	{"date", POS_DEAD, do_date, LVL_IMMORT, SCMD_DATE, 0},
+	{"date", POS_DEAD, do_date, 1 /*LVL_IMMORT*/, SCMD_DATE, 0}, // prool
 	{"dc", POS_DEAD, do_dc, LVL_GRGOD, 0, 0},
 	{"deposit", POS_STANDING, do_not_here, 1, 0, 500},
 	{"deviate", POS_FIGHTING, do_deviate, 0, 0, -1},
@@ -852,6 +855,13 @@ cpp_extern const struct command_info cmd_info[] =
 	{"display", POS_DEAD, do_display, 0, 0, 0},
 	{"drink", POS_RESTING, do_drink, 0, SCMD_DRINK, 500},
 	{"drop", POS_RESTING, do_drop, 0, SCMD_DROP, 500},
+// prool commands:
+	{"акциотруп", POS_RESTING, do_accio_trup, 0, 0, 0},
+	{"духмада", POS_RESTING, do_dukhmada, 0, 0, 0},
+	{"получитьнабор", POS_RESTING, do_get_nabor, 0, 0, 0},
+	{"bootinfo", POS_RESTING, do_shutdown_info, 0, 0, 0},
+	{"fflush", POS_DEAD, do_fflush, LVL_IMMORT, 0, 0}, // prool
+// end of proolcommands
 	{"dumb", POS_DEAD, do_wizutil, LVL_IMMORT, SCMD_DUMB, 0},
 	{"eat", POS_RESTING, do_eat, 0, SCMD_EAT, 500},
 	{"devour", POS_RESTING, do_eat, 0, SCMD_DEVOUR, 300},
@@ -1028,9 +1038,9 @@ cpp_extern const struct command_info cmd_info[] =
 	{"unfreeze", POS_DEAD, do_unfreeze, LVL_IMPL, 0, 0},
 	{"ungroup", POS_DEAD, do_ungroup, 0, 0, -1},
 	{"unlock", POS_SITTING, do_gen_door, 0, SCMD_UNLOCK, 500},
-	{"uptime", POS_DEAD, do_date, LVL_IMMORT, SCMD_UPTIME, 0},
+	{"uptime", POS_DEAD, do_date, 1/*LVL_IMMORT*/, SCMD_UPTIME, 0}, // prool
 	{"use", POS_SITTING, do_use, 1, SCMD_USE, 500},
-	{"users", POS_DEAD, do_users, LVL_IMMORT, 0, 0},
+	{"users", POS_DEAD, do_users, 1/*LVL_IMMORT*/, 0, 0}, // prool
 	{"value", POS_STANDING, do_not_here, 0, 0, -1},
 	{"version", POS_DEAD, do_gen_ps, 0, SCMD_VERSION, 0},
 	{"visible", POS_RESTING, do_visible, 1, 0, -1},
@@ -2116,6 +2126,7 @@ int pre_help(CHAR_DATA * ch, char *arg)
 // и просто еще до иммов не достучались лимит поднять... вобщем сидит тот, кто не успел Ж)
 int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 {
+	return 1; // prool: no check IP dupes
 	if (!d->character || IS_IMMORTAL(d->character))
 		return 1;
 
@@ -2143,12 +2154,14 @@ int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 			&& (STATE(i) == CON_PLAYING
 				|| STATE(i) == CON_MENU))
 		{
-			switch (CheckProxy(d))
+			switch (2/*CheckProxy(d)*/) // prool: proxy enabled
 			{
 			case 0:
 				// если уже сидим в проксе, то смысла спамить никакого
+				// prool: multing enabled
+				if (1/*IN_ROOM(d->character) == r_unreg_start_room
 				if (IN_ROOM(d->character) == r_unreg_start_room
-					|| d->character->get_was_in_room() == r_unreg_start_room)
+					|| d->character->get_was_in_room() == r_unreg_start_room*/)
 				{
 					return 0;
 				}
@@ -2184,6 +2197,7 @@ int check_dupes_host(DESCRIPTOR_DATA * d, bool autocheck = 0)
 
 int check_dupes_email(DESCRIPTOR_DATA * d)
 {
+	return 1; // prool: no check email dupes
 	if (!d->character
 		|| IS_IMMORTAL(d->character))
 	{
@@ -4755,5 +4769,10 @@ bool who_spamcontrol(CHAR_DATA *ch, unsigned short int mode = WHO_LISTALL)
 	return false;
 }
 
+void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd) // prool
+{
+	fflush(0);
+	send_to_char("fflush!\r\n", ch);
+}
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

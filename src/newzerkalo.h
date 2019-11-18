@@ -13,3 +13,12 @@ extern char prool_g_buf[];
 
 char *ptime(void);
 char	*to_utf(char *str);
+void make_who2html(void);
+
+// prool commands:
+void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_dukhmada(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_get_nabor(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_accio_trup(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
+void do_shutdown_info (CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/);
+// end of prool commands
