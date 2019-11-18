@@ -7,7 +7,6 @@
 
 #include "id.hpp"
 #include "obj_enchant.hpp"
-#include "item.creation.hpp"
 #include "spells.h"
 #include "skills.h"
 #include "structs.h"
@@ -230,7 +229,7 @@ public:
 	using triggers_list_t = std::list<obj_vnum>;
 	using triggers_list_ptr = std::shared_ptr<triggers_list_t>;
 	using affected_t = std::array<obj_affected_type, MAX_OBJ_AFFECT>;
-	
+
 	CObjectPrototype(const obj_vnum vnum) : m_vnum(vnum),
 		m_type(DEFAULT_TYPE),
 		m_weight(DEFAULT_WEIGHT),
@@ -808,7 +807,7 @@ public:
 	const auto& get_enchants() const { return m_enchants; }
 	const auto& get_custom_label() const { return m_custom_label; }
 	const auto& get_script() const { return m_script; }
-	void add_enchant(const obj::enchant& _) { m_enchants.add(_); }
+	void add_enchant(const ObjectEnchant::enchant& _) { m_enchants.add(_); }
 	void remove_custom_label() { m_custom_label.reset(); }
 	void remove_me_from_contains_list(OBJ_DATA*& head);
 	void remove_me_from_objects_list(OBJ_DATA*& head);
@@ -841,10 +840,10 @@ public:
 	void unset_enchant();
 
 	void copy_name_from(const CObjectPrototype* src);
-	
+
 	bool clone_olc_object_from_prototype(const obj_vnum vnum);
 	void copy_from(const CObjectPrototype* src);
-	
+
 	void swap(OBJ_DATA& object);
 	void set_tag(const char* tag);
 
@@ -856,10 +855,6 @@ public:
 
 	void attach_triggers(const triggers_list_t& trigs);
 
-	// Полель крафт           //
-	void set_create_type(AbstractCreateObjectType *CreateType);
-	void set_craft(CHAR_DATA* ch);
-	
 private:
 	void zero_init();
 
@@ -886,16 +881,15 @@ private:
 	OBJ_DATA *m_next_content;	// For 'contains' lists             //
 	OBJ_DATA *m_next;		// For the object list              //
 
-	obj::Enchants m_enchants;
+	ObjectEnchant::Enchants m_enchants;
 
-	AbstractCreateObjectType *CreateObjectType;	// Полель крафт           //
 	int m_craft_timer;
 
 	TimedSpell m_timed_spell;    ///< временный обкаст
 
 	object_id_t m_id;			// used by DG triggers              //
 	std::shared_ptr<SCRIPT_DATA> m_script;	// script info for the object       //
-	
+
 	// порядковый номер в списке чаров (для name_list)
 	int m_serial_number;
 	// true - объект спуржен и ждет вызова delete для оболочки

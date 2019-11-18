@@ -647,7 +647,8 @@ std::array<ESkill, MAX_SKILL_NUM - SKILL_FIRST> AVAILABLE_SKILLS =
 	SKILL_MIND_MAGIC,
 	SKILL_LIFE_MAGIC,
 	SKILL_STUN,
-	SKILL_MAKE_AMULET
+	SKILL_MAKE_AMULET,
+	SKILL_INDEFINITE
 };
 
 ///
@@ -954,7 +955,7 @@ int calculate_skill(CHAR_DATA * ch, const ESkill skill_no, CHAR_DATA * vict)
 		//		victim_modi = 100;
 		break;
 		}
-		
+
 	case SKILL_SNEAK:	// Подкрасться
 		{
 		bonus = dex_bonus(GET_REAL_DEX(ch))
@@ -1383,10 +1384,9 @@ int calculate_skill(CHAR_DATA * ch, const ESkill skill_no, CHAR_DATA * vict)
 
 	case SKILL_TURN_UNDEAD:  // изгнать нежить
 		{
-		bonus = (can_use_feat(ch, EXORCIST_FEAT) ? 20 : 0);
 		break;
 		}
-		
+
 	case SKILL_MORPH:
 		break;
 	case SKILL_STRANGLE: // удавить
@@ -1410,7 +1410,7 @@ int calculate_skill(CHAR_DATA * ch, const ESkill skill_no, CHAR_DATA * vict)
 		}
 		break;
 		}
-		
+
 	case SKILL_STUN: //ошеломить
 		{
 		//victim_sav = GET_SAVE(vict, SAVING_STABILITY) - dex_bonus(GET_REAL_CON(vict)) - GET_LEVEL(vict);
@@ -1433,7 +1433,7 @@ int calculate_skill(CHAR_DATA * ch, const ESkill skill_no, CHAR_DATA * vict)
 			victim_modi -= calculate_awake_mod(ch, vict);
 
 		// Полель не убираем учет удачи
-		//pass_mod = 1; //Убираем учет удачи  
+		//pass_mod = 1; //Убираем учет удачи
 		break;
 	}
 
@@ -1538,25 +1538,17 @@ void improove_skill(CHAR_DATA * ch, const ESkill skill_no, int success, CHAR_DAT
 		if (!IS_NPC(victim->get_master()))
 			return;
 	}
-	if (victim && 
+	if (victim &&
 		(MOB_FLAGGED(victim, MOB_MOUNTING)|| MOB_FLAGGED(victim, MOB_NOTRAIN)))
 	{
 		return;
 	}
 
-	int skill_is, diff = 0, prob, div;
+	int skill_is, prob, div;
 
-	if (IS_IMMORTAL(ch)
-		|| ((!victim || OK_GAIN_EXP(ch, victim))
-			&& ch->in_room != NOWHERE
-			&& !ROOM_FLAGGED(ch->in_room, ROOM_PEACEFUL)
-			// Стрибог
-			&& !ROOM_FLAGGED(ch->in_room, ROOM_ARENA)
-			//Свентовит
-			&& !ROOM_FLAGGED(ch->in_room, ROOM_HOUSE)
-			&& !ROOM_FLAGGED(ch->in_room, ROOM_ATRIUM)
-			&& (diff = wis_bonus(GET_REAL_WIS(ch), WIS_MAX_LEARN_L20) * GET_LEVEL(ch) / 20 - trained_skill) > 0
-			&& trained_skill < MAX_EXP_RMRT_PERCENT(ch)))
+	if ((!victim || OK_GAIN_EXP(ch, victim)) && ch->in_room != NOWHERE && !ROOM_FLAGGED(ch->in_room, ROOM_PEACEFUL)
+			&& !ROOM_FLAGGED(ch->in_room, ROOM_ARENA) && !ROOM_FLAGGED(ch->in_room, ROOM_HOUSE) && !ROOM_FLAGGED(ch->in_room, ROOM_ATRIUM)
+			&&  (max_upgradable_skill(ch) - trained_skill > 0))
 	{
 		// Success - multy by 2
 		prob = success ? 20000 : 15000;
@@ -1564,7 +1556,7 @@ void improove_skill(CHAR_DATA * ch, const ESkill skill_no, int success, CHAR_DAT
 
 	// Если чар нуб, то до 50% скиллы качаются гораздо быстрее
 	int INT_PLAYER = (ch->get_trained_skill(skill_no) < 51 && (AFF_FLAGGED(ch, EAffectFlag::AFF_NOOB_REGEN))) ? 50 : GET_REAL_INT(ch);
-	div = int_app[INT_PLAYER].improove /* + diff */;
+	div = int_app[INT_PLAYER].improove;
 
 		if ((int)GET_CLASS(ch) >= 0 && (int)GET_CLASS(ch) < NUM_PLAYER_CLASSES)
 		{
@@ -1702,7 +1694,7 @@ int find_weapon_focus_by_skill(ESkill skill)
 		return BOWS_FOCUS_FEAT;
 	break;
 	default:
-		return THAC0_FEAT;
+		return INCORRECT_FEAT;
 	}
 }
 
@@ -1741,7 +1733,7 @@ int find_weapon_master_by_skill(ESkill skill)
 		return BOWS_MASTER_FEAT;
 	break;
 	default:
-		return THAC0_FEAT;
+		return INCORRECT_FEAT;
 	}
 }
 
@@ -1798,6 +1790,8 @@ bool can_get_skill(CHAR_DATA *ch, int skill)
 }
 
 //  Реализация класса Skill
+// Закомментим поека за ненадобностью
+/*
 
 //Объявляем глобальный скиллист
 SkillListType Skill::SkillList;
@@ -1856,5 +1850,6 @@ int Skill::GetNumByID(const std::string& ID)
 };
 
 // Конец (увы) реализации класса Skill
+*/
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

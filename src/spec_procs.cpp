@@ -78,8 +78,7 @@ int guild_poly(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int guild(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int dump(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int mayor(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int snake(CHAR_DATA *ch, void *me, int cmd, char* argument);
-int thief(CHAR_DATA *ch, void *me, int cmd, char* argument);
+//int thief(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int magic_user(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int guild_guard(CHAR_DATA *ch, void *me, int cmd, char* argument);
 int fido(CHAR_DATA *ch, void *me, int cmd, char* argument);
@@ -141,7 +140,7 @@ char *how_good(CHAR_DATA * ch, int percent)
 		sprintf(out_str, " %s(божественно)%s", CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
 	else
 		sprintf(out_str, " %s(недостижимо)%s", CCWHT(ch, C_NRM), CCNRM(ch, C_NRM));
-	sprintf(out_str + strlen(out_str), " %d%%", percent);
+	sprintf(out_str + strlen(out_str), " %d%% ", percent);
 	return out_str;
 }
 
@@ -251,7 +250,7 @@ void list_feats(CHAR_DATA * ch, CHAR_DATA * vict, bool all_feats)
 					can_get_feat(ch, sortpos) ? "[Д]" : "[Н]",
 					feat_info[sortpos].name);
 
-			if (feat_info[sortpos].natural_classfeat[(int) GET_CLASS(ch)][(int) GET_KIN(ch)] || PlayerRace::FeatureCheck((int)GET_KIN(ch),(int)GET_RACE(ch),sortpos))
+			if (feat_info[sortpos].inbornFeatureOfClass[(int) GET_CLASS(ch)][(int) GET_KIN(ch)] || PlayerRace::FeatureCheck((int)GET_KIN(ch),(int)GET_RACE(ch),sortpos))
 			{
 				strcat(buf2, buf);
 				j++;
@@ -308,34 +307,23 @@ void list_feats(CHAR_DATA * ch, CHAR_DATA * vict, bool all_feats)
 			case LIGHT_WALK_FEAT:
 			case SPELL_CAPABLE_FEAT:
 			case RELOCATE_FEAT:
+			case SHADOW_THROW_FEAT:
 				if (timed_by_feat(ch, sortpos))
 					sprintf(buf, "[%3d] ", timed_by_feat(ch, sortpos));
 				else
 					sprintf(buf, "[-!-] ");
 				break;
 			case POWER_ATTACK_FEAT:
-				if (PRF_FLAGGED(ch, PRF_POWERATTACK))
-					sprintf(buf, "[-%s*%s-] ", CCIGRN(vict, C_NRM), CCNRM(vict, C_NRM));
-				else
-					sprintf(buf, "[-!-] ");
-				break;
 			case GREAT_POWER_ATTACK_FEAT:
-				if (PRF_FLAGGED(ch, PRF_GREATPOWERATTACK))
-					sprintf(buf, "[-%s*%s-] ", CCIGRN(vict, C_NRM), CCNRM(vict, C_NRM));
-				else
-					sprintf(buf, "[-!-] ");
-				break;
 			case AIMING_ATTACK_FEAT:
-				if (PRF_FLAGGED(ch, PRF_AIMINGATTACK))
-					sprintf(buf, "[-%s*%s-] ", CCIGRN(vict, C_NRM), CCNRM(vict, C_NRM));
-				else
-					sprintf(buf, "[-!-] ");
-				break;
 			case GREAT_AIMING_ATTACK_FEAT:
-				if (PRF_FLAGGED(ch, PRF_GREATAIMINGATTACK))
+			case SKIRMISHER_FEAT:
+			case DOUBLE_THROW_FEAT:
+			case TRIPLE_THROW_FEAT:
+				if (PRF_FLAGGED(ch, getPRFWithFeatureNumber(sortpos)))
 					sprintf(buf, "[-%s*%s-] ", CCIGRN(vict, C_NRM), CCNRM(vict, C_NRM));
 				else
-					sprintf(buf, "[-!-] ");
+					sprintf(buf, "[-:-] ");
 				break;
 			default:
 				sprintf(buf, "      ");
@@ -347,7 +335,7 @@ void list_feats(CHAR_DATA * ch, CHAR_DATA * vict, bool all_feats)
 				sprintf(buf + strlen(buf), "%s\r\n", feat_info[sortpos].name);
 			else
 				sprintf(buf, "[-Н-] %s\r\n", feat_info[sortpos].name);
-			if (feat_info[sortpos].natural_classfeat[(int) GET_CLASS(ch)][(int) GET_KIN(ch)] || PlayerRace::FeatureCheck((int)GET_KIN(ch),(int)GET_RACE(ch),sortpos))
+			if (feat_info[sortpos].inbornFeatureOfClass[(int) GET_CLASS(ch)][(int) GET_KIN(ch)] || PlayerRace::FeatureCheck((int)GET_KIN(ch),(int)GET_RACE(ch),sortpos))
 			{
 				sprintf(buf2 + strlen(buf2), "    ");
 				strcat(buf2, buf);
@@ -399,7 +387,7 @@ void list_feats(CHAR_DATA * ch, CHAR_DATA * vict, bool all_feats)
 
 	for (int k = 0; k < max_slot; k++)
 		delete[] names[k];
-	
+
 	delete[] names;
 }
 
@@ -407,8 +395,8 @@ void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter/* = NULL*/
 {
 	int i = 0, bonus = 0;
 
-	sprintf(buf, "Вы владеете следующими умениями :\r\n");
 
+	sprintf(buf, "Вы владеете следующими умениями (можно повысить до %d%%) :\r\n", max_upgradable_skill(ch));
 	strcpy(buf2, buf);
 	if (!IS_NPC(ch)
 		&& !ch->affected.empty())
@@ -417,7 +405,7 @@ void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter/* = NULL*/
 		{
 			if (aff->location == APPLY_BONUS_SKILLS) // скушал свиток с скилл бонусом
 			{
-				bonus = aff->modifier; // сколько крут стал 
+				bonus = aff->modifier; // сколько крут стал
 			}
 		}
 	}
@@ -448,6 +436,13 @@ void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter/* = NULL*/
 			case SKILL_WARCRY:
 				sprintf(buf, "[-%d-] ", (HOURS_PER_DAY - timed_by_skill(ch, sortpos)) / HOURS_PER_WARCRY);
 				break;
+			case SKILL_TURN_UNDEAD:
+				if (can_use_feat(ch, EXORCIST_FEAT)) {
+					sprintf(buf, "[-%d-] ", (HOURS_PER_DAY - timed_by_skill(ch, sortpos)) / (HOURS_PER_TURN_UNDEAD - 2));
+				} else {
+					sprintf(buf, "[-%d-] ", (HOURS_PER_DAY - timed_by_skill(ch, sortpos)) / HOURS_PER_TURN_UNDEAD);
+				}
+				break;
 			case SKILL_AID:
 			case SKILL_DRUNKOFF:
 			case SKILL_IDENTIFY:
@@ -455,7 +450,6 @@ void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter/* = NULL*/
 			case SKILL_COURAGE:
 			case SKILL_MANADRAIN:
 			case SKILL_TOWNPORTAL:
-			case SKILL_TURN_UNDEAD:
 			case SKILL_STRANGLE:
 			case SKILL_STUN:
 			case SKILL_REPAIR:
@@ -467,7 +461,7 @@ void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter/* = NULL*/
 			default:
 				sprintf(buf, "      ");
 			}
-			
+
 			sprintf(buf + strlen(buf), "%-23s %s\r\n",
 				skill_info[sortpos].name,
 				how_good(ch, ch->get_skill(sortpos) + bonus));
@@ -505,8 +499,8 @@ void list_skills(CHAR_DATA * ch, CHAR_DATA * vict, const char* filter/* = NULL*/
 			buf2_length += i->length();
 		}
 	}
-
 	send_to_char(buf2, vict);
+
 }
 const char *spells_color(int spellnum )
 {
@@ -550,7 +544,7 @@ const char *spells_color(int spellnum )
 	        default:
 	        	return "&n";
 			break;
-	        }	
+	        }
 }
 
 
@@ -639,7 +633,7 @@ void list_spells(CHAR_DATA * ch, CHAR_DATA * vict, int all_spells)
 
 
 			slots[slot_num] += sprintf(names[slot_num] + slots[slot_num],
-				"%s|<%c%c%c%c%c%c%c%c>%s %-30s %-7s&n|", 
+				"%s|<%c%c%c%c%c%c%c%c>%s %-30s %-7s&n|",
 
 				slots[slot_num] % 114 < 10 ? "\r\n" : "  ",
 				IS_SET(GET_SPELL_TYPE(ch, i),
@@ -3083,25 +3077,8 @@ void mayor(CHAR_DATA *ch, void *me, int cmd, char* argument)
 // *  General special procedures for mobiles                          *
 // ********************************************************************
 
-int snake(CHAR_DATA *ch, void* /*me*/, int cmd, char* /*argument*/)
-{
-	if (cmd)
-		return (FALSE);
-
-	if (GET_POS(ch) != POS_FIGHTING)
-		return (FALSE);
-
-	if (ch->get_fighting() && (ch->get_fighting()->in_room == ch->in_room) && (number(0, 42 - GET_LEVEL(ch)) == 0))
-	{
-		act("$n bites $N!", 1, ch, 0, ch->get_fighting(), TO_NOTVICT);
-		act("$n bites you!", 1, ch, 0, ch->get_fighting(), TO_VICT);
-		call_magic(ch, ch->get_fighting(), NULL, world[ch->in_room], SPELL_POISON, GET_LEVEL(ch), CAST_SPELL);
-		return (TRUE);
-	}
-	return (FALSE);
-}
-
-int thief(CHAR_DATA *ch, void* /*me*/, int cmd, char* /*argument*/)
+//int thief(CHAR_DATA *ch, void* /*me*/, int cmd, char* /*argument*/)
+/*
 {
 	if (cmd)
 		return (FALSE);
@@ -3123,7 +3100,7 @@ int thief(CHAR_DATA *ch, void* /*me*/, int cmd, char* /*argument*/)
 
 	return FALSE;
 }
-
+*/
 int magic_user(CHAR_DATA *ch, void* /*me*/, int cmd, char* /*argument*/)
 {
 	if (cmd || GET_POS(ch) != POS_FIGHTING)

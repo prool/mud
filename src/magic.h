@@ -26,10 +26,11 @@ struct ROOM_DATA;	// forward declaration to avoid inclusion of room.hpp and any 
 #define MOB_BONEDOG       3003
 #define MOB_BONEDRAGON    3004
 #define MOB_BONESPIRIT    3005
-#define MOB_SWAMPLIGHT    3006
-#define MOB_BANSHEE       3007
-#define MOB_LICH          3008
-#define LAST_NECR_MOB	  3008
+#define MOB_NECR_DAMAGER 3007
+#define MOB_NECR_TANK 3008
+#define MOB_NECR_BRIZER	3009
+#define MOB_NECR_CASTER 3010
+#define LAST_NECR_MOB	  3011
 #define MOB_KEEPER        104
 #define MOB_FIREKEEPER    105
 #define MOB_MENTAL_SHADOW 3020
@@ -41,8 +42,6 @@ struct ROOM_DATA;	// forward declaration to avoid inclusion of room.hpp and any 
 
 #define SpINFO spell_info[spellnum]
 
-int get_resist_type(int spellnum);
-void delete_from_tmp_char_list(CHAR_DATA *ch);
 bool is_room_forbidden(ROOM_DATA * room);
 int check_recipe_items(CHAR_DATA * ch, int spellnum, int spelltype, int extract, const CHAR_DATA * targ = NULL);
 void mobile_affect_update(void);

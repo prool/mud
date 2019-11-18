@@ -220,7 +220,7 @@ void do_summon(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 		send_to_char("Но ваш какун рядом с вами!\r\n", ch);
 		return;
 	}
-	
+
 	send_to_char("Ваш скакун появился перед вами.\r\n", ch);
 	act("$n исчез$q в голубом пламени.", TRUE, horse, 0, 0, TO_ROOM);
 	char_from_room(horse);
@@ -241,7 +241,7 @@ void do_save(CHAR_DATA *ch, char* /*argument*/, int cmd, int/* subcmd*/)
 	{
 		send_to_char("Ладушки.\r\n", ch);
 		WAIT_STATE(ch, 3 * PULSE_VIOLENCE);
-	}	
+	}
 	write_aliases(ch);
 	ch->save_char();
 	Crash_crashsave(ch);
@@ -984,7 +984,7 @@ int max_group_size(CHAR_DATA *ch)
 {
     int bonus_commander = 0;
     if (AFF_FLAGGED(ch, EAffectFlag::AFF_COMMANDER)) bonus_commander = VPOSI((ch->get_skill(SKILL_LEADERSHIP) - 120) / 10, 0 , 8);
-    
+
     return MAX_GROUPED_FOLLOWERS + (int) VPOSI((ch->get_skill(SKILL_LEADERSHIP) - 80) / 5, 0, 4) + bonus_commander;
 }
 
@@ -1098,7 +1098,8 @@ void change_leader(CHAR_DATA *ch, CHAR_DATA *vict)
 	if (vict)
 	{
 		// флаг группы надо снять, иначе при регрупе не будет писаться о старом лидере
-		AFF_FLAGS(ch).unset(EAffectFlag::AFF_GROUP);
+		//AFF_FLAGS(ch).unset(EAffectFlag::AFF_GROUP);
+		ch->removeGroupFlags();
 		leader->add_follower_silently(ch);
 	}
 
@@ -1203,7 +1204,7 @@ void print_one_line(CHAR_DATA * ch, CHAR_DATA * k, int leader, int header)
 	{
 		if (!header)
 			send_to_char
-			("Персонаж            | Здоровье |Энергия|Рядом|Учить| Аффект | Кто | Положение\r\n", ch);
+			("Персонаж            | Здоровье |Энергия|Рядом|Учить| Аффект | Кто | Держит строй | Положение \r\n", ch);
 
 		std::string name = GET_NAME(k);
 		name[0] = UPPER(name[0]);
@@ -1268,14 +1269,15 @@ void print_one_line(CHAR_DATA * ch, CHAR_DATA * k, int leader, int header)
 				on_horse(k) ? "В" : " ", CCNRM(ch, C_NRM));
 
 		sprintf(buf + strlen(buf), "%5s|", leader ? "Лидер" : "");
-		sprintf(buf + strlen(buf), "%s", POS_STATE[(int) GET_POS(k)]);
+		ok = PRF_FLAGGED(k, PRF_SKIRMISHER);
+		sprintf(buf + strlen(buf), "%s%-14s%s|",	ok ? CCGRN(ch, C_NRM) : CCNRM(ch, C_NRM), ok ? " Да  " : " Нет ", CCNRM(ch, C_NRM));
+		sprintf(buf + strlen(buf), " %s", POS_STATE[(int) GET_POS(k)]);
 		act(buf, FALSE, ch, 0, k, TO_CHAR);
 	}
 }
 
 void print_list_group(CHAR_DATA *ch)
 {
-	
 	CHAR_DATA *k;
 	struct follow_type *f;
 	int count = 1;
@@ -1426,13 +1428,13 @@ void do_group(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		print_group(ch);
 		return;
 	}
-	
+
 	if (!str_cmp(buf, "список"))
 	{
 		print_list_group(ch);
 		return;
 	}
-	
+
 	if (GET_POS(ch) < POS_RESTING)
 	{
 		send_to_char("Трудно управлять группой в таком состоянии.\r\n", ch);
@@ -1450,9 +1452,9 @@ void do_group(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		send_to_char("За вами никто не следует.\r\n", ch);
 		return;
 	}
-	
-	
-	
+
+
+
 // вычисляем количество последователей
 	for (f_number = 0, f = ch->followers; f; f = f->next)
 	{
@@ -1556,7 +1558,8 @@ void do_group(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			act("$N исключен$A из состава вашей группы.", FALSE, ch, 0, vict, TO_CHAR);
 			act("Вы исключены из группы $n1!", FALSE, ch, 0, vict, TO_VICT);
 			act("$N был$G исключен$A из группы $n1!", FALSE, ch, 0, vict, TO_NOTVICT | TO_ARENA_LISTEN);
-			AFF_FLAGS(vict).unset(EAffectFlag::AFF_GROUP);
+			//AFF_FLAGS(vict).unset(EAffectFlag::AFF_GROUP);
+			vict->removeGroupFlags();
 		}
 	}
 }
@@ -1583,7 +1586,8 @@ void do_ungroup(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			next_fol = f->next;
 			if (AFF_FLAGGED(f->follower, EAffectFlag::AFF_GROUP))
 			{
-				AFF_FLAGS(f->follower).unset(EAffectFlag::AFF_GROUP);
+				//AFF_FLAGS(f->follower).unset(EAffectFlag::AFF_GROUP);
+				f->follower->removeGroupFlags();
 				send_to_char(buf2, f->follower);
 				if (!AFF_FLAGGED(f->follower, EAffectFlag::AFF_CHARM)
 					&& !(IS_NPC(f->follower)
@@ -1594,6 +1598,7 @@ void do_ungroup(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			}
 		}
 		AFF_FLAGS(ch).unset(EAffectFlag::AFF_GROUP);
+		ch->removeGroupFlags();
 		send_to_char("Вы распустили группу.\r\n", ch);
 		return;
 	}
@@ -1605,7 +1610,8 @@ void do_ungroup(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			&& !AFF_FLAGGED(tch, EAffectFlag::AFF_CHARM)
 			&& !IS_HORSE(tch))
 		{
-			AFF_FLAGS(tch).unset(EAffectFlag::AFF_GROUP);
+			//AFF_FLAGS(tch).unset(EAffectFlag::AFF_GROUP);
+			tch->removeGroupFlags();
 			act("$N более не член вашей группы.", FALSE, ch, 0, tch, TO_CHAR);
 			act("Вы исключены из группы $n1!", FALSE, ch, 0, tch, TO_VICT);
 			act("$N был$G изгнан$A из группы $n1!", FALSE, ch, 0, tch, TO_NOTVICT | TO_ARENA_LISTEN);
@@ -1693,7 +1699,7 @@ void do_split(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/,int cur
 	one_argument(argument, buf);
 
 	int what_currency;
-		
+
 	switch (currency) {
 		case currency::ICE :
 			what_currency = WHAT_ICEu;
@@ -1711,7 +1717,7 @@ void do_split(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/,int cur
 			send_to_char("И как вы это планируете сделать?\r\n", ch);
 			return;
 		}
-		
+
 		if (amount > ch->get_gold() && currency == currency::GOLD)
 		{
 			send_to_char("И где бы взять вам столько денег?.\r\n", ch);
@@ -1750,7 +1756,7 @@ void do_split(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/,int cur
 			return;
 		}
 		//MONEY_HACK
-	
+
 		switch (currency) {
 			case currency::ICE :
 				ch->sub_ice_currency(share* (num - 1));
@@ -1765,7 +1771,7 @@ void do_split(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/,int cur
 		if (AFF_FLAGGED(k, EAffectFlag::AFF_GROUP) && IN_ROOM(k) == ch->in_room && !IS_NPC(k) && k != ch)
 		{
 			send_to_char(buf, k);
-			switch (currency) 
+			switch (currency)
 			{
 				case currency::ICE :
 				{
@@ -1858,7 +1864,8 @@ void apply_enchant(CHAR_DATA *ch, OBJ_DATA *obj, std::string text)
 		send_to_char(ch, "Этот предмет уже магический и не может быть зачарован.\r\n");
 		return;
 	}
-	if (target->get_enchants().check(obj::ENCHANT_FROM_OBJ))
+
+	if (target->get_enchants().check(ObjectEnchant::ENCHANT_FROM_OBJ))
 	{
 		send_to_char(ch, "На %s уже наложено зачарование.\r\n",
 			target->get_PName(3).c_str());
@@ -1870,7 +1877,7 @@ void apply_enchant(CHAR_DATA *ch, OBJ_DATA *obj, std::string text)
 		&& check_slots != to_underlying(EWearFlag::ITEM_WEAR_TAKE))
 	{
 		send_to_char(ch, "Вы успешно зачаровали %s.\r\n", GET_OBJ_PNAME(target, 0).c_str());
-		obj::enchant ench(obj);
+		ObjectEnchant::enchant ench(obj);
 		ench.apply_to_obj(target);
 		extract_obj(obj);
 	}
@@ -1892,7 +1899,7 @@ void apply_enchant(CHAR_DATA *ch, OBJ_DATA *obj, std::string text)
 void do_use(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 {
 	OBJ_DATA *mag_item;
-	int do_hold = 0;	
+	int do_hold = 0;
 	two_arguments(argument, arg, buf);
 	char *buf_temp = str_dup(buf);
 	if (!*arg)
@@ -2009,7 +2016,7 @@ void do_use(CHAR_DATA *ch, char *argument, int cmd, int subcmd)
 	if ((do_hold && GET_EQ(ch, WEAR_HOLD) == mag_item) || (!do_hold))
 		mag_objectmagic(ch, mag_item, buf_temp);
 	free (buf_temp);
-		
+
 }
 
 void do_wimpy(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
@@ -2341,7 +2348,7 @@ void do_mode(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		strcpy(buf, "Вы можете установить следующее.\r\n");
 		for (i = 0; *gen_tog_type[i << 1] != '\n'; i++)
 			if ((GET_LEVEL(ch) >= gen_tog_param[i].level) && (GET_GOD_FLAG(ch, GF_TESTER) || !gen_tog_param[i].tester))
-				sprintf(buf + strlen(buf), "%-20s(%s)\r\n", gen_tog_type[i << 1], gen_tog_type[(i << 1) + 1]);					
+				sprintf(buf + strlen(buf), "%-20s(%s)\r\n", gen_tog_type[i << 1], gen_tog_type[(i << 1) + 1]);
 		strcat(buf, "\r\n");
 		send_to_char(buf, ch);
 	}
@@ -3177,6 +3184,39 @@ int insert_wanted_gem::get_qty(int gem_vnum, const std::string& str)
 {
 	return content[gem_vnum][str].qty;
 }
+bool insert_wanted_gem::is_gem(int gem_vnum)
+{
+	const auto it = content.find(gem_vnum);
+	if (it == content.end())
+	{
+		return false ;
+	}
+	return true;
+}
+
+std::string insert_wanted_gem::get_random_str_for(int gem_vnum)
+{
+	const auto it = content.find(gem_vnum);
+	if (it == content.end())
+	{
+		return "";
+	}
+
+	auto gem = content[gem_vnum];
+	int rnd = number(0, gem.size()-1);
+
+	int count = 0;
+	for(auto kv : gem)
+	{
+		if (count == rnd)
+		{
+			return  kv.first;
+		}
+		count++;
+	}
+
+	return "";
+}
 
 int insert_wanted_gem::exist(const int gem_vnum, const std::string& str) const
 {
@@ -3523,11 +3563,11 @@ extern void set_obj_eff(OBJ_DATA *itemobj, const EApplyLocation type, int mod)
 
 extern struct index_data *obj_index;
 
-bool is_dig_stone(OBJ_DATA *obj)
-{
+bool is_dig_stone(OBJ_DATA *obj) {
 	if ((GET_OBJ_VNUM(obj) >= dig_vars.stone1_vnum
-			&& GET_OBJ_VNUM(obj) <= dig_vars.stone1_vnum + 17)
-		|| GET_OBJ_VNUM(obj) == DIG_GLASS_VNUM)
+		 && GET_OBJ_VNUM(obj) <= dig_vars.stone1_vnum + 17)
+		|| GET_OBJ_VNUM(obj) == DIG_GLASS_VNUM
+		|| iwg.is_gem( GET_OBJ_VNUM(obj)))
 	{
 		return true;
 	}
@@ -3598,7 +3638,7 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 		send_to_char(buf, ch);
 		return;
 	}
-	if (GET_OBJ_MATER(itemobj) < 1 || (GET_OBJ_MATER(itemobj) > 6 && GET_OBJ_MATER(itemobj) != 13))
+	if (GET_OBJ_MATER(itemobj) < OBJ_DATA::MAT_BULAT || (GET_OBJ_MATER(itemobj) > OBJ_DATA::MAT_COLOR && GET_OBJ_MATER(itemobj) != OBJ_DATA::MAT_BONE))
 	{
 		sprintf(buf, "%s состоит из неподходящего материала.\r\n", itemobj->get_PName(0).c_str());
 		send_to_char(buf, ch);
@@ -3652,13 +3692,10 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 		}
 	}
 
-//Polos.insert_wanted_gem
-
 	argument = one_argument(argument, arg3);
 
 	if (!*arg3)
 	{
-//-Polos.insert_wanted_gem
 		improove_skill(ch, SKILL_INSERTGEM, 0, 0);
 
 		if (percent > prob / insgem_vars.prob_divide)
@@ -3682,7 +3719,6 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 			}
 			return;
 		}
-//Polos.insert_wanted_gem
 	}
 	else
 	{
@@ -3724,7 +3760,6 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 			return;
 		}
 	}
-//-Polos.insert_wanted_gem
 
 	sprintf(buf, "Вы вплавили %s в %s!\r\n", gemobj->get_PName(3).c_str(), itemobj->get_PName(3).c_str());
 	send_to_char(buf, ch);
@@ -3742,290 +3777,25 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 		itemobj->set_timer(timer);
 	}
 
-	if (GET_OBJ_MATER(gemobj) == 18)
+	if (GET_OBJ_MATER(gemobj) == OBJ_DATA::MAT_DIAMOND)
 	{
-//Polos.insert_wanted_gem
+		std::string effect = "";
 		if (!*arg3)
 		{
-//-Polos.insert_wanted_gem
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum)
-				switch (number(1, 6))
-				{
-				case 1:
-					set_obj_aff(itemobj, EAffectFlag::AFF_DETECT_INVIS);
-					break;
-				case 2:
-					set_obj_aff(itemobj, EAffectFlag::AFF_DETECT_MAGIC);
-					break;
-				case 3:
-					set_obj_aff(itemobj, EAffectFlag::AFF_DETECT_ALIGN);
-					break;
-				case 4:
-					set_obj_aff(itemobj, EAffectFlag::AFF_BLESS);
-					break;
-				case 5:
-					set_obj_aff(itemobj, EAffectFlag::AFF_HASTE);
-					break;
-
-				case 6:
-					set_obj_eff(itemobj, APPLY_HITROLL, -1);
-					break;
-
-				}
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum + 1)
-				switch (number(1, 6))
-				{
-				case 1:
-					set_obj_eff(itemobj, APPLY_HITROLL, 1);
-					break;
-				case 2:
-					set_obj_eff(itemobj, APPLY_AC, -20);
-					set_obj_eff(itemobj, APPLY_SAVING_REFLEX, -5);
-					set_obj_eff(itemobj, APPLY_SAVING_STABILITY, -5);
-					break;
-				case 3:
-					set_obj_aff(itemobj, EAffectFlag::AFF_WATERWALK);
-					break;
-				case 4:
-					set_obj_aff(itemobj, EAffectFlag::AFF_SINGLELIGHT);
-					break;
-				case 5:
-					set_obj_aff(itemobj, EAffectFlag::AFF_INFRAVISION);
-					break;
-				case 6:
-					set_obj_aff(itemobj, EAffectFlag::AFF_CURSE);
-					break;
-
-				}
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum + 2)
-				switch (number(1, 6))
-				{
-				case 1:
-					set_obj_eff(itemobj, APPLY_HIT, 20);
-					break;
-				case 2:
-					set_obj_eff(itemobj, APPLY_MOVE, 20);
-					break;
-				case 3:
-					set_obj_aff(itemobj, EAffectFlag::AFF_PROTECT_EVIL);
-					break;
-				case 4:
-					set_obj_aff(itemobj, EAffectFlag::AFF_PROTECT_GOOD);
-					break;
-				case 5:
-					set_obj_aff(itemobj, EAffectFlag::AFF_AWARNESS);
-					break;
-				case 6:
-					set_obj_eff(itemobj, APPLY_MOVEREG, -5);
-					break;
-
-				}
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum + 3)
-				switch (number(1, 6))
-				{
-				case 1:
-					set_obj_eff(itemobj, APPLY_SAVING_REFLEX, -10);
-					break;
-
-				case 2:
-					set_obj_eff(itemobj, APPLY_HITREG, 10);
-					break;
-
-				case 3:
-					set_obj_aff(itemobj, EAffectFlag::AFF_HOLYDARK);
-					break;
-
-				case 4:
-					if (!CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_WIELD)
-						&& !CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_HOLD)
-						&& !CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_BOTHS))
-					{
-						set_obj_eff(itemobj, APPLY_SIZE, 7);
-					}
-					else
-					{
-						set_obj_eff(itemobj, APPLY_MORALE, 3);
-					}
-					break;
-
-				case 5:
-					set_obj_eff(itemobj, APPLY_MORALE, 3);
-					break;
-
-				case 6:
-					set_obj_eff(itemobj, APPLY_HITREG, -5);
-					break;
-				}
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum + 4)
-				switch (number(1, 7))
-				{
-				case 1:
-					set_obj_eff(itemobj, APPLY_SAVING_STABILITY, -10);
-					break;
-
-				case 2:
-					set_obj_eff(itemobj, APPLY_SAVING_CRITICAL, -10);
-					break;
-
-				case 3:
-					set_obj_eff(itemobj, APPLY_RESIST_AIR, 15);
-					break;
-
-				case 4:
-					set_obj_eff(itemobj, APPLY_RESIST_WATER, 15);
-					break;
-
-				case 5:
-					set_obj_eff(itemobj, APPLY_RESIST_FIRE, 15);
-					break;
-
-				case 6:
-					set_obj_eff(itemobj, APPLY_SAVING_CRITICAL, 10);
-					break;
-
-				case 7:
-					set_obj_eff(itemobj, APPLY_RESIST_DARK, 15);
-					break;
-				}
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum + 5)
-				switch (number(1, 6))
-				{
-				case 1:
-					set_obj_aff(itemobj, EAffectFlag::AFF_SANCTUARY);
-					break;
-
-				case 2:
-					set_obj_aff(itemobj, EAffectFlag::AFF_BLINK);
-					break;
-
-				case 3:
-					if (!CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_WIELD)
-						&& !CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_HOLD)
-						&& !CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_BOTHS))
-					{
-						set_obj_eff(itemobj, APPLY_ABSORBE, 5);
-					}
-					else
-					{
-						set_obj_eff(itemobj, APPLY_HITREG, 25);
-					}
-					break;
-
-				case 4:
-					set_obj_aff(itemobj, EAffectFlag::AFF_FLY);
-					break;
-
-				case 5:
-					set_obj_eff(itemobj, APPLY_MANAREG, 10);
-					break;
-
-				case 6:
-					set_obj_eff(itemobj, APPLY_SAVING_STABILITY, -10);
-					break;
-				}
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum + 6)
-				switch (number(1, 6))
-				{
-				case 1:
-					set_obj_eff(itemobj, APPLY_DAMROLL, 3);
-					break;
-
-				case 2:
-					set_obj_eff(itemobj, APPLY_HITROLL, 3);
-					break;
-
-				case 3:
-					if (!OBJ_FLAGGED(itemobj, EExtraFlag::ITEM_NODISARM)
-						&& (CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_WIELD)
-							|| CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_HOLD)
-							|| CAN_WEAR(itemobj, EWearFlag::ITEM_WEAR_BOTHS)))
-					{
-						itemobj->set_extra_flag(EExtraFlag::ITEM_NODISARM);
-					}
-					else
-					{
-						set_obj_eff(itemobj, APPLY_HITROLL, 3);
-					}
-					break;
-
-				case 4:
-					set_obj_eff(itemobj, APPLY_SAVING_WILL, -10);
-					break;
-
-				case 5:
-					set_obj_aff(itemobj, EAffectFlag::AFF_INVISIBLE);
-					break;
-
-				case 6:
-					set_obj_eff(itemobj, APPLY_SAVING_WILL, 10);
-					break;
-				}
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum + 7)
-				switch (number(1, 6))
-				{
-				case 1:
-					set_obj_eff(itemobj, APPLY_INT, 1);
-					break;
-
-				case 2:
-					set_obj_eff(itemobj, APPLY_WIS, 1);
-					break;
-
-				case 3:
-					set_obj_eff(itemobj, APPLY_DEX, 1);
-					break;
-
-				case 4:
-					set_obj_eff(itemobj, APPLY_STR, 1);
-					break;
-
-				case 5:
-					set_obj_eff(itemobj, APPLY_CON, 1);
-					break;
-
-				case 6:
-					set_obj_eff(itemobj, APPLY_CHA, 1);
-					break;
-				}
-			if (GET_OBJ_VNUM(gemobj) == dig_vars.stone1_vnum + 8)
-				switch (number(1, 6))
-				{
-				case 1:
-					set_obj_eff(itemobj, APPLY_INT, 2);
-					break;
-
-				case 2:
-					set_obj_eff(itemobj, APPLY_WIS, 2);
-					break;
-
-				case 3:
-					set_obj_eff(itemobj, APPLY_DEX, 2);
-					break;
-
-				case 4:
-					set_obj_eff(itemobj, APPLY_STR, 2);
-					break;
-
-				case 5:
-					set_obj_eff(itemobj, APPLY_CON, 2);
-					break;
-
-				case 6:
-					set_obj_eff(itemobj, APPLY_CHA, 2);
-					break;
-				}
-//Polos.insert_wanted_gem
+			int gem_vnum = GET_OBJ_VNUM(gemobj);
+			effect = iwg.get_random_str_for(gem_vnum);
 		}
 		else
 		{
-			int tmp_type, tmp_qty;
-			std::string str(arg3);
+			effect = arg3;
+		}
 
-			int tmp_bit = iwg.get_bit(GET_OBJ_VNUM(gemobj), str);
-			tmp_qty = iwg.get_qty(GET_OBJ_VNUM(gemobj), str);
-			tmp_type = iwg.get_type(GET_OBJ_VNUM(gemobj), str);
-			switch (tmp_type)
-			{
+		int tmp_type, tmp_qty;
+		int tmp_bit = iwg.get_bit(GET_OBJ_VNUM(gemobj), effect);
+		tmp_qty = iwg.get_qty(GET_OBJ_VNUM(gemobj), effect);
+		tmp_type = iwg.get_type(GET_OBJ_VNUM(gemobj), effect);
+		switch (tmp_type)
+		{
 			case 1:
 				set_obj_eff(itemobj, static_cast<EApplyLocation>(tmp_bit), tmp_qty);
 				break;
@@ -4041,10 +3811,7 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 			default:
 				break;
 
-			};
-		}
-//-Polos.insert_wanted_gem
-// Теперь все вплавленное занимает слоты
+		};
 	}
 
 	if (OBJ_FLAGGED(itemobj, EExtraFlag::ITEM_WITH3SLOTS))
@@ -4062,8 +3829,9 @@ void do_insertgem(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 		itemobj->unset_extraflag(EExtraFlag::ITEM_WITH1SLOT);
 	}
 
-	if (!OBJ_FLAGGED(itemobj, EExtraFlag::ITEM_TRANSFORMED))
+	if (!OBJ_FLAGGED(itemobj, EExtraFlag::ITEM_TRANSFORMED)) {
 		itemobj->set_extra_flag(EExtraFlag::ITEM_TRANSFORMED);
+	}
 	extract_obj(gemobj);
 }
 
@@ -4148,7 +3916,7 @@ bool is_dark(room_rnum room)
 	// если светит луна и комната !помещение и !город
 	if ((SECT(room) != SECT_INSIDE) && (SECT(room) != SECT_CITY) && (IS_MOONLIGHT(room)))
 		coef += 1.0;
-		
+
 	// если ночь и мы не внутри и не в городе
 	if ((SECT(room) != SECT_INSIDE) && (SECT(room) != SECT_CITY) && ((weather_info.sunlight == SUN_SET) || (weather_info.sunlight == SUN_DARK)))
 		coef -= 1.0;
@@ -4158,11 +3926,11 @@ bool is_dark(room_rnum room)
 
 	if (ROOM_FLAGGED(room, ROOM_LIGHT))
 		coef += 200.0;
-	
+
 	// проверка на костер
 	if (world[room]->fires)
-		coef += 1.0;	
-	
+		coef += 1.0;
+
 	// проходим по всем чарам и смотрим на них аффекты тьма/свет/освещение
 
 	for (const auto tmp_ch : world[room]->people)
@@ -4179,17 +3947,17 @@ bool is_dark(room_rnum room)
 		// Санка. Логично, что если чар светится ярким сиянием, то это сияние распространяется на комнату
 		if (AFF_FLAGGED(tmp_ch, EAffectFlag::AFF_SANCTUARY))
 			coef += 1.0;
-		// Тьма. Сразу фигачим коэф 6. 
+		// Тьма. Сразу фигачим коэф 6.
 		if (AFF_FLAGGED(tmp_ch, EAffectFlag::AFF_HOLYDARK))
 			coef -= 6.0;
 	}
-	
+
 	if (coef < 0)
 	{
 		return true;
 	}
 	return false;
-		
+
 }
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

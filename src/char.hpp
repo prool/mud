@@ -88,7 +88,7 @@ public:
 	ubyte mresist;
 	ubyte aresist;
 	ubyte presist;	// added by WorM(Видолюб) по просьбе <сумасшедшего> (зачеркнуто) безбашенного билдера поглощение физ.урона в %
-	
+
 };
 
 // Char's abilities.
@@ -106,9 +106,9 @@ struct char_ability_data
 // Char's points.
 struct char_point_data
 {
-	int hit;	
+	int hit;
 	sh_int move;
-	
+
 	sh_int max_move;	// Max move for PC/NPC
 	int max_hit;		// Max hit for PC/NPC
 };
@@ -543,7 +543,7 @@ public:
 	** Returns true if character is mob and located in used zone.
 	**/
 	bool in_used_zone() const;
-	
+
 	/**
 	 * Возвращает коэффициент штрафа за состояние
 	**/
@@ -598,7 +598,7 @@ public:
 	void inc_souls();
 	void dec_souls();
 	int get_souls();
-	
+
 	unsigned get_wait() const { return m_wait; }
 	void set_wait(const unsigned _) { m_wait = _; }
 	void wait_dec() { m_wait -= 0 < m_wait ? 1 : 0; }
@@ -615,6 +615,7 @@ public:
 	void set_role(const role_t& new_role) { role_ = new_role; }
 	void msdp_report(const std::string& name);
 
+	void removeGroupFlags();
 	void add_follower(CHAR_DATA* ch);
 	/** Do NOT call this before having checked if a circle of followers
 	* will arise. CH will follow leader
@@ -734,6 +735,7 @@ private:
 	int souls;
 
 public:
+	bool isInSameRoom(const CHAR_DATA *ch) const {return (this->in_room == ch->in_room);};
 	room_rnum in_room;	// Location (real room number)
 
 private:
@@ -822,10 +824,10 @@ inline void CHAR_DATA::clear_ignores()
 	get_player_specials()->ignores.clear();
 }
 
-inline int GET_INVIS_LEV(const CHAR_DATA* ch) 
-{ 
+inline int GET_INVIS_LEV(const CHAR_DATA* ch)
+{
 	if (ch->player_specials->saved.invis_level)
-		return ch->player_specials->saved.invis_level; 
+		return ch->player_specials->saved.invis_level;
 	else
 		return 0;
 }
@@ -934,13 +936,37 @@ inline int VPOSI_MOB(const CHAR_DATA *ch, const int stat_id, const int val)
 }
 inline int VPOSI_MOB(const CHAR_DATA::shared_ptr& ch, const int stat_id, const int val) { return VPOSI_MOB(ch.get(), stat_id, val); }
 
-inline auto GET_REAL_DEX(const CHAR_DATA* ch)
-{
+inline auto GET_REAL_STR(const CHAR_DATA* ch) {
+	return VPOSI_MOB(ch, 0, ch->get_str() + ch->get_str_add());
+};
+inline auto GET_REAL_DEX(const CHAR_DATA* ch) {
 	return VPOSI_MOB(ch, 1, ch->get_dex() + ch->get_dex_add());
 }
+inline auto GET_REAL_CON(const CHAR_DATA* ch) {
+	return VPOSI_MOB(ch, 2, ch->get_con() + ch->get_con_add());
+};
+inline auto GET_REAL_WIS(const CHAR_DATA* ch) {
+	return VPOSI_MOB(ch, 3, ch->get_wis() + ch->get_wis_add());
+};
+inline auto GET_REAL_INT(const CHAR_DATA* ch) {
+	return VPOSI_MOB(ch, 4, ch->get_int() + ch->get_int_add());
+};
+inline auto GET_REAL_CHA(const CHAR_DATA* ch) {
+	return VPOSI_MOB(ch, 5, ch->get_cha() + ch->get_cha_add());
+};
 
+const short CAP_SKILLS = 200;
+const byte  MAX_EXP_PERCENT = 80;
+
+inline auto MAX_EXP_RMRT_PERCENT(const CHAR_DATA* ch) {
+	return MIN(CAP_SKILLS, MAX_EXP_PERCENT + ch->get_remort() * 5);
+}
+inline auto max_upgradable_skill(const CHAR_DATA *ch) {
+	return MIN(MAX_EXP_RMRT_PERCENT(ch), wis_bonus(GET_REAL_WIS(ch), WIS_MAX_LEARN_L20) * GET_LEVEL(ch) / 20);
+};
 void change_fighting(CHAR_DATA * ch, int need_stop);
 
 #endif // CHAR_HPP_INCLUDED
+
 
 // vim: ts=4 sw=4 tw=0 noet syntax=cpp :

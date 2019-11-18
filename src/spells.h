@@ -18,7 +18,7 @@ struct ROOM_DATA;	// forward declaration to avoid inclusion of room.hpp and any 
 
 #define DEFAULT_STAFF_LVL	12
 #define DEFAULT_WAND_LVL	12
-#define CAST_UNDEFINED	-1
+
 #define CAST_SPELL	0
 #define CAST_POTION	1
 #define CAST_WAND	2
@@ -33,10 +33,6 @@ struct ROOM_DATA;	// forward declaration to avoid inclusion of room.hpp and any 
 
 #define MTYPE_NEUTRAL		(1 << 0)
 #define MTYPE_AGGRESSIVE	(1 << 1)
-/*#define MTYPE_AIR	(1 << 1)
-#define MTYPE_FIRE	(1 << 2)
-#define MTYPE_WATER	(1 << 3)
-#define MTYPE_EARTH	(1 << 4)*/
 
 // *******************************
 // * Spells class                *
@@ -387,10 +383,37 @@ enum ESpell
 	SPELL_GROUP_BLINK = 235, // групповая мигалка
 	SPELL_GROUP_CLOUDLY = 236, // группповое затуманивание
 	SPELL_GROUP_AWARNESS = 237, // групповая внимательность
-	SPELLS_COUNT = SPELL_GROUP_AWARNESS    // Counter corresponds to the last value because we count spells from 1.
+	SPELL_WC_EXPERIENSE = 238, // опыт группы
+	SPELL_WC_LUCK = 239, // удача группы
+	SPELL_WC_PHYSDAMAGE = 240, // + дам
+	SPELL_MASS_FAILURE = 241, // взор Велеса (массовая недоля)
+	SPELL_MASS_NOFLEE = 242, // западня (массовое сковывание)
+	SPELLS_COUNT = 	SPELL_MASS_NOFLEE    // Counter corresponds to the last value because we count spells from 1.
 };
 
-typedef std::array<const char*, SPELLS_COUNT + 1> spell_wear_off_msg_t;
+class spell_wear_off_msg_t: public std::array<const char*, SPELLS_COUNT + 1>
+{
+	private:
+		static constexpr std::size_t MESSAGE_BUFFER_LENGTH = 128;
+		static char MESSAGE_BUFFER[MESSAGE_BUFFER_LENGTH];
+
+		using parent_t = std::array<const char*, SPELLS_COUNT + 1>;
+		using parent_t::operator[];
+
+	public:
+		const static char* DEFAULT_MESSAGE;
+
+		value_type operator[](size_type index) const
+		{
+			if (size() > index && nullptr != parent_t::operator[](index))
+			{
+				return parent_t::operator[](index);
+			}
+
+			::snprintf(MESSAGE_BUFFER, MESSAGE_BUFFER_LENGTH, DEFAULT_MESSAGE, index);
+			return MESSAGE_BUFFER;
+		}
+};
 extern const spell_wear_off_msg_t spell_wear_off_msg;
 
 typedef std::array<const char*, 2> cast_phrase_t;
@@ -591,11 +614,9 @@ int mag_damage(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int 
 
 int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int savetype);
 
-int mag_groups(int level, CHAR_DATA * ch, int spellnum, int savetype);
+int callMagicToGroup(int level, CHAR_DATA * ch, int spellnum);
 
-int mag_masses(int level, CHAR_DATA * ch, ROOM_DATA * room, int spellnum, int savetype);
-
-int mag_areas(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int savetype);
+int callMagicToArea(CHAR_DATA* ch, CHAR_DATA* victim, ROOM_DATA* room, int spellnum, int level);
 
 int mag_summons(int level, CHAR_DATA * ch, OBJ_DATA * obj, int spellnum, int savetype);
 
@@ -609,7 +630,7 @@ int mag_creations(int level, CHAR_DATA * ch, int spellnum);
 
 int mag_single_target(int level, CHAR_DATA * caster, CHAR_DATA * cvict, OBJ_DATA * ovict, int spellnum, int casttype);
 
-int call_magic(CHAR_DATA * caster, CHAR_DATA * cvict, OBJ_DATA * ovict, ROOM_DATA *rvict, int spellnum, int level, int casttype);
+int call_magic(CHAR_DATA * caster, CHAR_DATA * cvict, OBJ_DATA * ovict, ROOM_DATA *rvict, int spellnum, int level);
 
 void mag_objectmagic(CHAR_DATA * ch, OBJ_DATA * obj, const char *argument);
 
@@ -619,18 +640,13 @@ bool catch_bloody_corpse(OBJ_DATA * l);
 
 namespace RoomSpells {
 
-// список всех обкстованных комнат //
-extern std::list<ROOM_DATA*> aff_room_list;
-// Показываем комнаты под аффектами //
-void ShowRooms(CHAR_DATA *ch);
-// Применение заклинания к комнате //
-int mag_room(int level, CHAR_DATA * ch , ROOM_DATA * room, int spellnum);
-// Поиск первой комнаты с аффектом от spellnum и кастером с идом Id //
-ROOM_DATA * find_affected_roomt(long id, int spellnum);
-// Время существования заклинания в комнате //
-int timer_affected_roomt(long id, int spellnum);
+	extern std::list<ROOM_DATA*> aff_room_list;
+	void showAffectedRooms(CHAR_DATA *ch);
+	int imposeSpellToRoom(int level, CHAR_DATA * ch , ROOM_DATA * room, int spellnum);
+	ROOM_DATA * findAffectedRoom(long id, int spellnum);
+	int getUniqueAffectDuration(long casterID, int spellnum);
 
-} // RoomSpells
+} // namespace RoomSpells
 
 // other prototypes //
 void mspell_remort(char *name , int spell, int kin , int chclass, int remort);
@@ -641,6 +657,7 @@ void init_spell_levels(void);
 const char *feat_name(int num);
 const char *skill_name(int num);
 const char *spell_name(int num);
+int calculateSaving(CHAR_DATA *killer, CHAR_DATA *victim, int type, int ext_apply);
 int general_savingthrow(CHAR_DATA *killer, CHAR_DATA *victim, int type, int ext_apply);
 bool can_get_spell(CHAR_DATA *ch, int spellnum);
 int min_spell_lvl_with_req(CHAR_DATA *ch, int spellnum, int req_lvl);
@@ -663,6 +680,7 @@ namespace SpellUsage
 #define CALC_SUCCESS(modi,perc)         ((modi)-100+(perc))
 
 const int HOURS_PER_WARCRY = 4;
+const int HOURS_PER_TURN_UNDEAD = 8;
 
 #endif
 

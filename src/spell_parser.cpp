@@ -2135,80 +2135,45 @@ void cast_reaction(CHAR_DATA * victim, CHAR_DATA * caster, int spellnum)
  * This is also the entry point for non-spoken or unrestricted spells.
  * Spellnum 0 is legal but silently ignored here, to make callers simpler.
  */
-int call_magic(CHAR_DATA * caster, CHAR_DATA * cvict, OBJ_DATA * ovict, ROOM_DATA *rvict, int spellnum, int level, int casttype)
-{
-	int savetype;
+int call_magic(CHAR_DATA * caster, CHAR_DATA * cvict, OBJ_DATA * ovict, ROOM_DATA *rvict, int spellnum, int level) {
 
 	if (spellnum < 1 || spellnum > TOP_SPELL_DEFINE)
 		return (0);
 
-	if (caster && cvict)
-	{
+	if (caster && cvict) {
 		cast_mtrigger(cvict, caster, spellnum);
 	}
 
-	// Определяю возможность чтения заклинания
-	//******************************************
-	if (ROOM_FLAGGED(IN_ROOM(caster), ROOM_NOMAGIC) && !may_cast_in_nomagic(caster, cvict, spellnum))
-	{
+	if (ROOM_FLAGGED(IN_ROOM(caster), ROOM_NOMAGIC) && !may_cast_in_nomagic(caster, cvict, spellnum)) {
 		send_to_char("Ваша магия потерпела неудачу и развеялась по воздуху.\r\n", caster);
 		act("Магия $n1 потерпела неудачу и развеялась по воздуху.", FALSE, caster, 0, 0, TO_ROOM | TO_ARENA_LISTEN);
 		return 0;
 	}
 
-	if (!may_cast_here(caster, cvict, spellnum))
-	{
-		if (IS_SET(SpINFO.routines, MAG_WARCRY))
-		{
+	if (!may_cast_here(caster, cvict, spellnum)) {
+		if (IS_SET(SpINFO.routines, MAG_WARCRY)) {
 			send_to_char("Ваш громовой глас сотряс воздух, но ничего не произошло!\r\n", caster);
 			act("Вы вздрогнули от неожиданного крика, но ничего не произошло.", FALSE, caster, 0, 0, TO_ROOM | TO_ARENA_LISTEN);
-		}
-		else
-		{
+		} else {
 			send_to_char("Ваша магия обратилась всего лишь в яркую вспышку!\r\n", caster);
 			act("Яркая вспышка на миг осветила комнату, и тут же погасла.", FALSE, caster, 0, 0, TO_ROOM | TO_ARENA_LISTEN);
 		}
 		return 0;
 	}
 
-	// determine the type of saving throw
-	switch (casttype)
-	{
-	case CAST_STAFF:
-	case CAST_SCROLL:
-	case CAST_POTION:
-	case CAST_WAND:
-	case CAST_ITEMS:
-	case CAST_RUNES:
-	case CAST_SPELL:
-		savetype = SAVING_STABILITY;
-		break;
-	default:
-		savetype = SAVING_CRITICAL;
-		break;
-	}
-
 	if (SpellUsage::isActive)
 		SpellUsage::AddSpellStat(GET_CLASS(caster), spellnum);
 
-	// Обработка заклинания
-	//******************************************
-
-	// Проверка модификаторов целеуказаний
-
-	if (IS_SET(SpINFO.routines, MAG_MASSES))
-		return mag_masses(level, caster, rvict, spellnum, savetype);
+	if (IS_SET(SpINFO.routines, MAG_AREAS) || IS_SET(SpINFO.routines, MAG_MASSES))
+		return callMagicToArea(caster, cvict, rvict, spellnum, level);
 
 	if (IS_SET(SpINFO.routines, MAG_GROUPS))
-		return mag_groups(level, caster, spellnum, savetype);
-
-	if (IS_SET(SpINFO.routines, MAG_AREAS))
-		return mag_areas(level, caster, cvict, spellnum, savetype);
+		return callMagicToGroup(level, caster, spellnum);
 
 	if (IS_SET(SpINFO.routines, MAG_ROOM))
-		return RoomSpells::mag_room(level, caster, rvict, spellnum);
+		return RoomSpells::imposeSpellToRoom(level, caster, rvict, spellnum);
 
-	return mag_single_target(level, caster, cvict, ovict, spellnum, savetype);
+	return mag_single_target(level, caster, cvict, ovict, spellnum, SAVING_STABILITY);
 }
 
 void do_ident(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
@@ -2241,8 +2206,7 @@ void do_ident(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	if (!IS_IMMORTAL(ch))
 	{
 		timed.skill = SKILL_IDENTIFY;
-		//imed.time = can_use_feat(ch, CONNOISEUR_FEAT) ? feature_mod(CONNOISEUR_FEAT, FEAT_TIMER) : 12;
-		timed.time = MAX((can_use_feat(ch, CONNOISEUR_FEAT) ? feature_mod(CONNOISEUR_FEAT, FEAT_TIMER) : 12) - ((GET_SKILL(ch, SKILL_IDENTIFY) - 25) / 25),1); //12..5 or 8..1
+		timed.time = MAX((can_use_feat(ch, CONNOISEUR_FEAT) ? getModifier(CONNOISEUR_FEAT, FEAT_TIMER) : 12) - ((GET_SKILL(ch, SKILL_IDENTIFY) - 25) / 25),1); //12..5 or 8..1
 		timed_to_char(ch, &timed);
 	}
 	MANUAL_SPELL(skill_identify)
@@ -2611,7 +2575,7 @@ void mag_objectmagic(CHAR_DATA * ch, OBJ_DATA * obj, const char *argument)
 			 */
 			if (HAS_SPELL_ROUTINE(GET_OBJ_VAL(obj, 3), MAG_MASSES | MAG_AREAS))
 			{
-				call_magic(ch, NULL, NULL, world[ch->in_room], GET_OBJ_VAL(obj, 3), level, CAST_STAFF);
+				call_magic(ch, NULL, NULL, world[ch->in_room], GET_OBJ_VAL(obj, 3), level);
 			}
 			else
 			{
@@ -2620,7 +2584,7 @@ void mag_objectmagic(CHAR_DATA * ch, OBJ_DATA * obj, const char *argument)
 				{
 					if (ch != tch)
 					{
-						call_magic(ch, tch, NULL, world[ch->in_room], GET_OBJ_VAL(obj, 3), level, CAST_STAFF);
+						call_magic(ch, tch, NULL, world[ch->in_room], GET_OBJ_VAL(obj, 3), level);
 					}
 				}
 			}
@@ -2734,7 +2698,7 @@ void mag_objectmagic(CHAR_DATA * ch, OBJ_DATA * obj, const char *argument)
 
 		obj->dec_val(2);
 		WAIT_STATE(ch, PULSE_VIOLENCE);
-		call_magic(ch, tch, tobj, world[ch->in_room], GET_OBJ_VAL(obj, 3), level, CAST_WAND);
+		call_magic(ch, tch, tobj, world[ch->in_room], GET_OBJ_VAL(obj, 3), level);
 		break;
 
 	case OBJ_DATA::ITEM_SCROLL:
@@ -2776,7 +2740,7 @@ void mag_objectmagic(CHAR_DATA * ch, OBJ_DATA * obj, const char *argument)
 		WAIT_STATE(ch, PULSE_VIOLENCE);
 		for (i = 1; i <= 3; i++)
 		{
-			if (call_magic(ch, tch, tobj, world[ch->in_room], GET_OBJ_VAL(obj, i), level, CAST_SCROLL) <= 0)
+			if (call_magic(ch, tch, tobj, world[ch->in_room], GET_OBJ_VAL(obj, i), level) <= 0)
 			{
 				break;
 			}
@@ -2808,7 +2772,7 @@ void mag_objectmagic(CHAR_DATA * ch, OBJ_DATA * obj, const char *argument)
 		WAIT_STATE(ch, PULSE_VIOLENCE);
 		for (i = 1; i <= 3; i++)
 		{
-			if (call_magic(ch, ch, NULL, world[ch->in_room], GET_OBJ_VAL(obj, i), level, CAST_POTION) <= 0)
+			if (call_magic(ch, ch, NULL, world[ch->in_room], GET_OBJ_VAL(obj, i), level) <= 0)
 			{
 				break;
 			}
@@ -3017,7 +2981,7 @@ int cast_spell(CHAR_DATA * ch, CHAR_DATA * tch, OBJ_DATA * tobj, ROOM_DATA * tro
 	{
 		GET_CASTER(ch) -= (IS_SET(spell_info[spellnum].routines, NPC_CALCULATE) ? 1 : 0);
 	}
-	return (call_magic(ch, tch, tobj, troom, spellnum, GET_LEVEL(ch), CAST_SPELL));
+	return (call_magic(ch, tch, tobj, troom, spellnum, GET_LEVEL(ch)));
 }
 
 int spell_use_success(CHAR_DATA * ch, CHAR_DATA * victim, int casting_type, int spellnum)
@@ -3402,7 +3366,7 @@ void do_warcry(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	send_to_char(buf, ch);
 	say_spell(ch, spellnum, tch, tobj);
 
-	if (call_magic(ch, tch, tobj, troom, spellnum, GET_LEVEL(ch), CAST_SPELL) >= 0)
+	if (call_magic(ch, tch, tobj, troom, spellnum, GET_LEVEL(ch)) >= 0)
 	{
 		if (!WAITLESS(ch))
 		{
@@ -3549,8 +3513,7 @@ void do_mixture(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 		}
 		else  	// call magic returns 1 on success; set waitstate
 		{
-			if (call_magic(ch, tch, tobj, world[ch->in_room], spellnum, GET_LEVEL(ch),
-						   subcmd == SCMD_ITEMS ? CAST_ITEMS : CAST_RUNES) >= 0)
+			if (call_magic(ch, tch, tobj, world[ch->in_room], spellnum, GET_LEVEL(ch)) >= 0)
 			{
 				if (!(WAITLESS(ch) || CHECK_WAIT(ch)))
 					WAIT_STATE(ch, PULSE_VIOLENCE);
@@ -4396,8 +4359,7 @@ void mspell_slot(char *name, int spell, int kin , int chclass, int slot)
 
 
 // Assign the spells on boot up
-void
-spello(int spl, const char *name, const char *syn,
+void spello(int spl, const char *name, const char *syn,
 	   int max_mana, int min_mana, int mana_change,
 	   int minpos, int targets, int violent, int routines, int danger, int spell_class)
 {
@@ -5029,8 +4991,6 @@ void mag_assign_spells(void)
 		   150, 140, 1, POS_FIGHTING,
 		   TAR_CHAR_ROOM | TAR_FIGHT_VICT, MTYPE_NEUTRAL, MAG_DAMAGE | NPC_DAMAGE_PC, 15, STYPE_DARK);
 //135
-//	spello(SPELL_METEORSTORM, "метеоритный дождь", "meteor storm", 125, 110, 2,
-//		   POS_FIGHTING, TAR_IGNORE, MTYPE_AGGRESSIVE, MAG_MASSES | MAG_DAMAGE | NPC_DAMAGE_PC, 5, STYPE_EARTH);
 	spello(SPELL_METEORSTORM, "метеоритный дождь", "meteor storm", 125, 110, 2,
 		   POS_FIGHTING, TAR_ROOM_THIS, FALSE, MAG_NEED_CONTROL | MAG_ROOM | MAG_CASTER_INROOM, 0, STYPE_EARTH);
 //136
@@ -5302,7 +5262,7 @@ void mag_assign_spells(void)
 		   POS_STANDING, TAR_IGNORE, FALSE, MAG_MANUAL, 1, STYPE_MIND);
 //209
 	spello(SPELL_EVARDS_BLACK_TENTACLES, "навьи руки", "evards black tentacles", 120, 110, 2,
-		   POS_STANDING, TAR_ROOM_THIS, FALSE, MAG_NEED_CONTROL | MAG_ROOM | MAG_CASTER_INROOM, 0, STYPE_DARK);
+		   POS_FIGHTING, TAR_ROOM_THIS, FALSE, MAG_NEED_CONTROL | MAG_ROOM | MAG_CASTER_INROOM, 0, STYPE_DARK);
 //210
 	spello(SPELL_WHIRLWIND, "вихрь", "whirlwind", 110, 100, 1,
 		   POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_VICT, MTYPE_AGGRESSIVE,
@@ -5385,7 +5345,7 @@ void mag_assign_spells(void)
 //233
 	spello(SPELL_PALADINE_INSPIRATION, "воодушевление", "inspiration",
 		   0, 0, 0, 255, 0, FALSE, MAG_AFFECTS, 0, STYPE_NEUTRAL);
-//234	
+//234
 	spello(SPELL_DEXTERITY, "ловкость", "dexterity", 40, 30, 1,
 		 POS_FIGHTING, TAR_CHAR_ROOM | TAR_FIGHT_SELF, FALSE, MAG_AFFECTS | NPC_AFFECT_NPC, 0, STYPE_LIFE);
 //235
@@ -5397,6 +5357,22 @@ void mag_assign_spells(void)
 //237
 	spello(SPELL_GROUP_AWARNESS, "групповая внимательность", "group awarness",
 		110, 100, 2, POS_FIGHTING, TAR_IGNORE, FALSE, MAG_GROUPS | MAG_AFFECTS | NPC_AFFECT_NPC, 30, STYPE_MIND);
+//238
+	spello(SPELL_WC_EXPERIENSE, "клич обучения", "warcry of training", 10, 10, 10,
+		POS_FIGHTING, TAR_IGNORE, FALSE,  MAG_WARCRY | MAG_GROUPS | MAG_AFFECTS | NPC_AFFECT_NPC, 0, STYPE_MIND);
+//239
+	spello(SPELL_WC_LUCK, "клич везения", "warcry of luck", 10, 10, 10,
+		POS_FIGHTING, TAR_IGNORE, FALSE,  MAG_WARCRY | MAG_GROUPS | MAG_AFFECTS | NPC_AFFECT_NPC, 0, STYPE_MIND);
+//240
+	spello(SPELL_WC_PHYSDAMAGE, "клич точности", "warcry of accuracy", 10, 10, 10,
+		POS_FIGHTING, TAR_IGNORE, FALSE,  MAG_WARCRY | MAG_GROUPS | MAG_AFFECTS | NPC_AFFECT_NPC, 0, STYPE_MIND);
+//241
+	spello(SPELL_MASS_FAILURE, "взор Велеса", "gaze of Veles", 140, 120, 2,
+		   POS_FIGHTING, TAR_IGNORE, MTYPE_NEUTRAL, MAG_MASSES | MAG_AFFECTS | NPC_AFFECT_PC, 2, STYPE_DARK);
+//242
+	spello(SPELL_MASS_NOFLEE, "западня", "snare", 140, 120, 2,
+		   POS_FIGHTING, TAR_IGNORE, MTYPE_NEUTRAL, MAG_MASSES | MAG_AFFECTS | NPC_AFFECT_PC, 2, STYPE_MIND);
+
 	/*
 	 * These spells are currently not used, not implemented, and not castable.
 	 * Values for the 'breath' spells are filled in assuming a dragon's breath.
@@ -5516,6 +5492,7 @@ void mag_assign_spells(void)
 	skillo(SKILL_LIFE_MAGIC, "магия жизни", 1000);
 	skillo(SKILL_STUN, "ошеломить", 200);
 	skillo(SKILL_MAKE_AMULET, "смастерить оберег", 200);
+	skillo(SKILL_INDEFINITE, "!неопределен", 1);
 }
 
 MaxClassSlot::MaxClassSlot()

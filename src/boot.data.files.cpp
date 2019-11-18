@@ -1390,7 +1390,7 @@ void MobileFile::parse_enhanced_mob(int i, int nr)
 
 			if (!mob_proto[i].get_role_bits().any())
 			{
-				mob_proto[i].mob_specials.MaxFactor = mob_proto[i].get_level() / 3;
+				mob_proto[i].mob_specials.MaxFactor = mob_proto[i].get_level() / 5;
 //				log("SET maxfactor %d level mobs %d vnum %d  name %s", mob_proto[i].mob_specials.MaxFactor, mob_proto[i].get_level(), nr, mob_proto[i].get_npc_name().c_str());
 			}
 //			if (mob_proto[i].mob_specials.MaxFactor > 0  && mob_proto[i].get_role_bits().any())
@@ -1489,7 +1489,7 @@ void MobileFile::interpret_espec(const char *keyword, const char *value, int i, 
 			return;
 		}
 		for (k = 0; k < SAVING_COUNT; k++)
-			GET_SAVE(mob_proto + i, k) = MIN(200, MAX(-200, t[k]));
+			GET_SAVE(mob_proto + i, k) = MIN(MAX_SAVE, MAX(-MAX_SAVE, t[k]));
 	}
 
 	CASE("HPReg")
@@ -1512,7 +1512,7 @@ void MobileFile::interpret_espec(const char *keyword, const char *value, int i, 
 
 	CASE("CastSuccess")
 	{
-		RANGE(-200, 200);
+		RANGE(-200, 300);
 		mob_proto[i].add_abils.cast_success = num_arg;
 	}
 
@@ -1612,7 +1612,7 @@ void MobileFile::interpret_espec(const char *keyword, const char *value, int i, 
 	// *** Extended for Adamant
 	CASE("LikeWork")
 	{
-		RANGE(0, 200);
+		RANGE(0, 100);
 		mob_proto[i].mob_specials.LikeWork = num_arg;
 	}
 

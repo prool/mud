@@ -33,7 +33,6 @@
 #include "accounts.hpp"
 #include "zone.table.hpp"
 #include "daily_quest.hpp"
-#include "mobmax.cpp"
 
 #include <boost/lexical_cast.hpp>
 
@@ -235,11 +234,12 @@ int Player::get_hryvn()
 {
 	return this->hryvn;
 }
+short cap_hryvn = 1500;
 
 void Player::set_hryvn(int value)
 {
-	if (value > 1200)
-		value = 1200;
+	if (value > cap_hryvn)
+		value = cap_hryvn;
 	this->hryvn = value;
 }
 
@@ -256,15 +256,15 @@ void Player::add_hryvn(int value)
 		send_to_char(this, "Глянув на непонятный слиток, Вы решили выкинуть его...\r\n");
 		return;
 	}
-	else if ((this->get_hryvn() + value) > 1200)
+	else if ((this->get_hryvn() + value) > cap_hryvn)
 	{
-		value = 1200 - this->get_hryvn();
+		value = cap_hryvn - this->get_hryvn();
 		send_to_char(this, "Вы получили только %ld %s, так как в вашу копилку больше не лезет...\r\n",
 			static_cast<long>(value), desc_count(value, WHAT_TORCu));
 	}
 	else
 	{
-		send_to_char(this, "Вы получили %ld %s.\r\n", 
+		send_to_char(this, "Вы получили %ld %s.\r\n",
 			static_cast<long>(value), desc_count(value, WHAT_TORCu));
 	}
 	log("Персонаж %s получил %d [гривны].", GET_NAME(this), value);
@@ -1537,7 +1537,7 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 					this->add_daily_quest(num, num2);
 					this->set_time_daily_quest(num, lnum);
 				}
-				
+
 			}
 			break;
 
@@ -1638,8 +1638,8 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 				GET_COND(this, FULL) = num;
 			else if (!strcmp(tag, "Hry "))
 			{
-				if (num > 1200)
-					num = 1200;
+				if (num > cap_hryvn)
+					num = cap_hryvn;
 				this->set_hryvn(num);
 			}
 			else if (!strcmp(tag, "Host"))
@@ -2110,8 +2110,7 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 		GET_LOADROOM(this) = NOWHERE;
 	}
 
-	// Set natural & race features - added by Gorrah
-	set_natural_feats(this);
+	setAllInbornFeatures(this);
 
 	if (IS_GRGOD(this))
 	{
@@ -2149,7 +2148,7 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 	// иначе в таблице crc будут пустые имена, т.к. сама плеер-таблица еще не сформирована
 	// и в любом случае при ребуте это все пересчитывать не нужно
 	FileCRC::check_crc(filename, FileCRC::PLAYER, GET_UNIQUE(this));
-	
+
 	this->account = Account::get_account(GET_EMAIL(this));
 	if (this->account == nullptr)
 	{
@@ -2328,7 +2327,7 @@ int Player::get_count_daily_quest(int id)
 	if (this->daily_quest.count(id))
 		return this->daily_quest[id];
 	return 0;
-	
+
 }
 
 time_t Player::get_time_daily_quest(int id)

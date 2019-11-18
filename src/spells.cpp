@@ -742,7 +742,7 @@ void spell_summon(int/* level*/, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA* /* 
 		}
 		else
 		{
-			// для мобов возможно только 2 ошибки 
+			// для мобов возможно только 2 ошибки
 			if (ROOM_FLAGGED(vic_room, ROOM_NOSUMMON)	||	// жертва в комнате с флагом !призвать
 			AFF_FLAGGED(victim, EAffectFlag::AFF_NOTELEPORT))	// жертва под действием заклинания "приковать противника"
 			{
@@ -813,56 +813,41 @@ void spell_townportal(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_D
 	//если портала нет, проверяем, возможно игрок ставит врата на свою метку
 	if (!port && name_cmp(ch, cast_argument))
 	{
-		//Таки да, персонаж пытается поставить врата на себя, то бишь на свою метку. Ищем комнату с меткой.
-		label_room = RoomSpells::find_affected_roomt(GET_ID(ch), SPELL_RUNE_LABEL);
 
-		//Если такая комната есть - заполняем структуру портала
-		//Тупо конечно, но какого блин туча проверок по всем функциям рассована? Их все обойти - убиться проще.
-		if (label_room)
-		{
+		label_room = RoomSpells::findAffectedRoom(GET_ID(ch), SPELL_RUNE_LABEL);
+		if (label_room) {
 			label_port.vnum = label_room->number;
 			label_port.level = 1;
 			port = &label_port;
 			has_label_portal = true;
 		}
 	}
-	if (port && (has_char_portal(ch, port->vnum) || has_label_portal))
-	{
-		// Проверяем скилл тут, чтобы можно было смотреть список и удалять без -!-
-		if (timed_by_skill(ch, SKILL_TOWNPORTAL))
-		{
+	if (port && (has_char_portal(ch, port->vnum) || has_label_portal)) {
+		if (timed_by_skill(ch, SKILL_TOWNPORTAL)) {
 			send_to_char("У вас недостаточно сил для постановки врат.\r\n", ch);
 			return;
 		}
 
-		// Если мы открываем врата из комнаты с камнем, то они не работают //
-		if (find_portal_by_vnum(GET_ROOM_VNUM(ch->in_room)))
-		{
+		if (find_portal_by_vnum(GET_ROOM_VNUM(ch->in_room))) {
 			send_to_char("Камень рядом с вами мешает вашей магии.\r\n", ch);
 			return;
 		}
 
-		// Если в комнате есть метка-"камень" то врата ставить нельзя //
 		const auto& room = world[ch->in_room];
 		const auto room_affect_i = find_room_affect(room, SPELL_RUNE_LABEL);
-		if (room_affect_i != room->affected.end())
-		{
+		if (room_affect_i != room->affected.end()) {
 			send_to_char("Начертанные на земле магические руны подавляют вашу магию!\r\n", ch);
 			return;
 		}
 
-		// Чтоб не кастили в NOMAGIC
-		if (ROOM_FLAGGED(ch->in_room, ROOM_NOMAGIC) && !IS_GRGOD(ch))
-		{
+		if (ROOM_FLAGGED(ch->in_room, ROOM_NOMAGIC) && !IS_GRGOD(ch)) {
 			send_to_char("Ваша магия потерпела неудачу и развеялась по воздуху.\r\n", ch);
 			act("Магия $n1 потерпела неудачу и развеялась по воздуху.", FALSE, ch, 0, 0, TO_ROOM);
 			return;
 		}
 		//удаляем переходы
-		if (world[ch->in_room]->portal_time)
-		{
-			if (world[world[ch->in_room]->portal_room]->portal_room == ch->in_room && world[world[ch->in_room]->portal_room]->portal_time)
-			{
+		if (world[ch->in_room]->portal_time) {
+			if (world[world[ch->in_room]->portal_room]->portal_room == ch->in_room && world[world[ch->in_room]->portal_room]->portal_time) {
 				decay_portal(world[ch->in_room]->portal_room);
 			}
 			decay_portal(ch->in_room);
@@ -1335,6 +1320,10 @@ void spell_charm(int/* level*/, CHAR_DATA *ch, CHAR_DATA *victim, OBJ_DATA* /* o
 			}
 		}
 
+		if (CAN_SEE(victim, ch)) {
+			remember(victim, ch);
+		}
+
 		affect_from_char(victim, SPELL_CHARM);
 		ch->add_follower(victim);
 		AFFECT_DATA<EApplyLocation> af;
@@ -1637,7 +1626,7 @@ void do_findhelpee(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 
 		sprintf(buf, "$n сказал$g вам : \"Приказывай, %s!\"", IS_FEMALE(ch) ? "хозяйка" : "хозяин");
 		act(buf, FALSE, helpee, 0, ch, TO_VICT | CHECK_DEAF);
-		
+
 		if (IS_NPC(helpee))
 		{
 			for (auto i = 0; i < NUM_WEARS; i++)
@@ -2018,7 +2007,7 @@ void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness)
 		sprintf(buf, "Максимально вместимый вес: %d.\r\n", GET_OBJ_VAL(obj, 0));
 		send_to_char(buf, ch);
 		break;
-	
+
 	//Информация о емкостях (Купала)
 	case OBJ_DATA::ITEM_DRINKCON:
 		drinkcon::identify(ch, obj);
@@ -2968,7 +2957,7 @@ void spell_holystrike(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_D
 void spell_angel(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_DATA* /*obj*/)
 {
 	mob_vnum mob_num = 108;
-	int modifier = 0;
+	//int modifier = 0;
 	CHAR_DATA *mob = NULL;
 	struct follow_type *k, *k_next;
 
@@ -2984,14 +2973,13 @@ void spell_angel(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_DATA* 
 			stop_follower(k->follower, SF_CHARMLOST);
 		}
 	}
-	if (eff_cha < 16 && !IS_IMMORTAL(ch))
+
+	float base_success = 26.0;
+	float additional_success_for_charisma = 1.5; // 50 at 16 charisma, 101 at 50 charisma
+
+	if (number(1, 100) > floorf(base_success + additional_success_for_charisma * eff_cha))
 	{
-		send_to_char("Боги не обратили на вас никакого внимания!\r\n", ch);
-		return;
-	};
-	if (number(1, 1001) < 500 - 30 * GET_REMORT(ch) && !IS_IMMORTAL(ch))
-	{
-		send_to_char("Боги только посмеялись над вами!\r\n", ch);
+		send_to_room("Яркая вспышка света! Несколько белых перьев кружась легли на землю...", ch->in_room, true);
 		return;
 	};
 	if (!(mob = read_mobile(-mob_num, VIRTUAL)))
@@ -2999,30 +2987,59 @@ void spell_angel(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_DATA* 
 		send_to_char("Вы точно не помните, как создать данного монстра.\r\n", ch);
 		return;
 	}
-	//reset_char(mob);
+
+	int base_hp = 360;
+	int additional_hp_for_charisma = 40;
+	float base_shields = 0.0;
+	float additional_shields_for_charisma = 0.0454; // 0.72 shield at 16 charisma, 1 shield at 23 charisma. 45 for 2 shields
+	float base_awake = 2;
+	float additional_awake_for_charisma = 4; // 64 awake on 16 charisma, 202 awake at 50 charisma
+	float base_multiparry = 2;
+	float additional_multiparry_for_charisma = 2; // 34 multiparry on 16 charisma, 102 multiparry at 50 charisma;
+	float base_rescue = 20.0;
+	float additional_rescue_for_charisma = 2.5; // 60 rescue at 16 charisma, 135 rescue at 50 charisma;
+	float base_heal = 0;
+	float additional_heal_for_charisma = 0.12; // 1 heal at 16 charisma,  6 heal at 50 charisma;
+	float base_ttl = 10.0;
+	float additional_ttl_for_charisma = 0.25; // 14 min at 16 chsrisma, 22 min at 50 charisma;
+	float base_ac = 100;
+	float additional_ac_for_charisma = -2.5; //
+	float base_armour = 0;
+	float additional_armour_for_charisma = 0.5; // 8 armour for 16 charisma, 25 armour for 50 charisma
+
 	clear_char_skills(mob);
 	AFFECT_DATA<EApplyLocation> af;
 	af.type = SPELL_CHARM;
-	af.duration = pc_duration(mob, 5 + (int) VPOSI<float>((eff_cha - 16.0) / 2, 0, 50), 0, 0, 0, 0);
+	af.duration = pc_duration(mob, floorf(base_ttl + additional_ttl_for_charisma * eff_cha), 0, 0, 0, 0);
 	af.modifier = 0;
 	af.location = EApplyLocation::APPLY_NONE;
 	af.battleflag = 0;
 	af.bitvector = to_underlying(EAffectFlag::AFF_HELPER);
 	affect_to_char(mob, af);
-	//AFF_FLAGS(mob).set(EAffectFlag::AFF_FLY);
+
 	af.bitvector = to_underlying(EAffectFlag::AFF_FLY);
 	affect_to_char(mob, af);
-	//AFF_FLAGS(mob).set(EAffectFlag::AFF_INFRAVISION);
+
 	af.bitvector = to_underlying(EAffectFlag::AFF_INFRAVISION);
 	affect_to_char(mob, af);
-	if (eff_cha >= 22)
-	{
-		af.bitvector = to_underlying(EAffectFlag::AFF_SANCTUARY);
+
+	af.bitvector = to_underlying(EAffectFlag::AFF_SANCTUARY);
+	affect_to_char(mob, af);
+
+	//Set shields
+	int count_shields = base_shields + floorf(eff_cha * additional_shields_for_charisma) ;
+	if (count_shields>0) {
+		af.bitvector = to_underlying(EAffectFlag::AFF_AIRSHIELD);
 		affect_to_char(mob, af);
 	}
-	if (eff_cha >= 30)
+	if (count_shields>1)
 	{
-		af.bitvector = to_underlying(EAffectFlag::AFF_AIRSHIELD);
+		af.bitvector = to_underlying(EAffectFlag::AFF_ICESHIELD);
+		affect_to_char(mob, af);
+	}
+	if (count_shields>2)
+	{
+		af.bitvector = to_underlying(EAffectFlag::AFF_FIRESHIELD);
 		affect_to_char(mob, af);
 	}
 
@@ -3055,29 +3072,37 @@ void spell_angel(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_DATA* 
 		mob->player_data.description = str_dup("Сияющая призрачная фигура о двух крылах.\r\n");
 	}
 
-	mob->set_str(11);
-	mob->set_dex(16);
-	mob->set_con(17);
-	mob->set_int(25);
-	mob->set_wis(25);
-	mob->set_cha(22);
+	float additional_str_for_charisma = 0.6875;
+	float additional_dex_for_charisma = 1.0;
+	float additional_con_for_charisma = 1.0625;
+	float additional_int_for_charisma = 1.5625;
+	float additional_wis_for_charisma = 0.6;
+	float additional_cha_for_charisma = 1.375;
+
+	mob->set_str(1 + floorf( additional_str_for_charisma * eff_cha ));
+	mob->set_dex(1 + floorf( additional_dex_for_charisma * eff_cha ));
+	mob->set_con(1 + floorf( additional_con_for_charisma * eff_cha ));
+	mob->set_int(1 + floorf( additional_int_for_charisma * eff_cha ));
+	mob->set_wis(1 + floorf( additional_wis_for_charisma * eff_cha ));
+	mob->set_cha(1 + floorf( additional_cha_for_charisma * eff_cha ));
 
 	GET_WEIGHT(mob) = 150;
 	GET_HEIGHT(mob) = 200;
 	GET_SIZE(mob) = 65;
 
-	GET_HR(mob) = 25;
-	GET_AC(mob) = 100;
+	GET_HR(mob) = 1;
+	GET_AC(mob) = floorf( base_ac + additional_ac_for_charisma * eff_cha);
 	GET_DR(mob) = 0;
+	GET_ARMOUR(mob) = floorf(base_armour +  additional_armour_for_charisma * eff_cha );
 
 	mob->mob_specials.damnodice = 1;
 	mob->mob_specials.damsizedice = 1;
-	mob->mob_specials.ExtraAttack = 1;
+	mob->mob_specials.ExtraAttack = 0;
 
 	mob->set_exp(0);
 
-	GET_MAX_HIT(mob) = 600;
-	GET_HIT(mob) = 600;
+	GET_MAX_HIT(mob) = floorf( base_hp + additional_hp_for_charisma * eff_cha);
+	GET_HIT(mob) = GET_MAX_HIT(mob);
 	mob->set_gold(0);
 	GET_GOLD_NoDs(mob) = 0;
 	GET_GOLD_SiDs(mob) = 0;
@@ -3085,18 +3110,15 @@ void spell_angel(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_DATA* 
 	GET_POS(mob) = POS_STANDING;
 	GET_DEFAULT_POS(mob) = POS_STANDING;
 
-//----------------------------------------------------------------------
-	mob->set_skill(SKILL_RESCUE, 65);
-	mob->set_skill(SKILL_AWAKE, 50);
-	mob->set_skill(SKILL_PUNCH, 50);
-	mob->set_skill(SKILL_BLOCK, 50);
+	mob->set_skill(SKILL_RESCUE, floorf( base_rescue +additional_rescue_for_charisma * eff_cha));
+	mob->set_skill(SKILL_AWAKE, floorf( base_awake +additional_awake_for_charisma * eff_cha ));
+	mob->set_skill(SKILL_MULTYPARRY, floorf( base_multiparry + additional_multiparry_for_charisma * eff_cha ));
 
 	SET_SPELL(mob, SPELL_CURE_BLIND, 1);
-	SET_SPELL(mob, SPELL_CURE_CRITIC, 3);
 	SET_SPELL(mob, SPELL_REMOVE_HOLD, 1);
 	SET_SPELL(mob, SPELL_REMOVE_POISON, 1);
+	SET_SPELL(mob, SPELL_HEAL, floorf( base_heal + additional_heal_for_charisma * eff_cha));
 
-//----------------------------------------------------------------------
 	if (mob->get_skill(SKILL_AWAKE))
 	{
 		PRF_FLAGS(mob).set(PRF_AWAKE);
@@ -3111,47 +3133,6 @@ void spell_angel(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_DATA* 
 	MOB_FLAGS(mob).set(MOB_LIGHTBREATH);
 
 	mob->set_level(ch->get_level());
-//----------------------------------------------------------------------
-// добавляем зависимости от уровня и от обаяния
-// level
-
-	modifier = (int)(5 * VPOSI(GET_LEVEL(ch) - 26, 0, 50)
-					 + 5 * VPOSI<float>(eff_cha - 16, 0, 50));
-
-	mob->set_skill(SKILL_RESCUE, mob->get_skill(SKILL_RESCUE) + modifier);
-	mob->set_skill(SKILL_AWAKE, mob->get_skill(SKILL_AWAKE) + modifier);
-	mob->set_skill(SKILL_PUNCH, mob->get_skill(SKILL_PUNCH) + modifier);
-	mob->set_skill(SKILL_BLOCK, mob->get_skill(SKILL_BLOCK) + modifier);
-
-	modifier = (int)(2 * VPOSI(GET_LEVEL(ch) - 26, 0, 50)
-					 + 1 * VPOSI<float>(eff_cha - 16, 0, 50));
-	GET_HR(mob) += modifier;
-
-	modifier = VPOSI(GET_LEVEL(ch) - 26, 0, 50);
-	mob->inc_con(modifier);
-
-	modifier = (int)(20 * VPOSI<float>(eff_cha - 16, 0, 50));
-	GET_MAX_HIT(mob) += modifier;
-	GET_HIT(mob) += modifier;
-
-	modifier = (int)(3 * VPOSI<float>(eff_cha - 16, 0, 50));
-	GET_AC(mob) -= modifier;
-
-	modifier = 1 * VPOSI((int)((eff_cha - 16) / 2), 0, 50);
-	mob->inc_str(modifier);
-	mob->inc_dex(modifier);
-
-	modifier = VPOSI((int)((eff_cha - 22) / 4), 0, 50);
-	SET_SPELL(mob, SPELL_HEAL, GET_SPELL_MEM(mob, SPELL_HEAL) + modifier);
-
-	if (eff_cha >= 26)
-		mob->mob_specials.ExtraAttack += 1;
-
-	if (eff_cha >= 24)
-	{
-		mob->mob_specials.damnodice += 1;
-		mob->mob_specials.damsizedice += 1;
-	}
 
 	char_to_room(mob, ch->in_room);
 
@@ -3161,7 +3142,7 @@ void spell_angel(int/* level*/, CHAR_DATA *ch, CHAR_DATA* /*victim*/, OBJ_DATA* 
 	}
 	else
 	{
-		act("Небесный защитник появился в яркой вспышке света!", TRUE, mob, 0, 0, TO_ROOM);
+		act("Небесный защитник появился в яркой вспышке света!", TRUE, mob, 0, 0, TO_ROOM | TO_ARENA_LISTEN);
 	}
 	ch->add_follower(mob);
 	return;
@@ -3220,6 +3201,8 @@ void spell_mental_shadow(int/* level*/, CHAR_DATA* ch, CHAR_DATA* /*victim*/, OB
 	return;
 }
 
+const char* spell_wear_off_msg_t::DEFAULT_MESSAGE = "!нет сообщения при спадении аффекта под номером %d!";
+char spell_wear_off_msg_t::MESSAGE_BUFFER[spell_wear_off_msg_t::MESSAGE_BUFFER_LENGTH];
 const spell_wear_off_msg_t spell_wear_off_msg =
 {
 	"RESERVED DB.C",	// 0
@@ -3325,7 +3308,7 @@ const spell_wear_off_msg_t spell_wear_off_msg =
 	"Ваши передвижения стали заметны.",	// 100
 	"Кураж прошел. Мама, лучше бы я умер$q вчера.",
 	"А головка ваша уже не болит.",
-	"Вам снова захотелось жаренького.",
+	"Вам снова захотелось жареного, да с дымком.",
 	"Вы согрелись и подвижность вернулась к вам.",
 	"К вам вернулась способность нормально сражаться.",	// 105
 	"Ваши кровоточащие раны затянулись.",
@@ -3456,7 +3439,16 @@ const spell_wear_off_msg_t spell_wear_off_msg =
 	"!NONE",
 	"!NONE",
 	"*Боевое воодушевление угасло, а с ним и вся жажда подвигов!",
-	"Вы стали менее шустрым."
+	"Вы стали менее шустрым.",
+	"!NONE",//    SPELL_GROUP_BLINK = 235, // групповая мигалка
+	"!NONE",//    SPELL_GROUP_CLOUDLY = 236, // группповое затуманивание
+	"!NONE",//    SPELL_GROUP_AWARNESS = 237, // групповая внимательность
+	"Действие клича 'обучение' закончилось.",
+	"Действие клича 'везение' закончилось.",
+	"Действие клича 'точности' закончилось.",
+	"Удача снова повернулась к вам лицом... и залепила пощечину.", // SPELL_MASS_FAILURE !взор Велеса!
+	"Покрывавшие вас сети колдовской западни растаяли." // SPELL_MASS_NOFLEE !западня!
+
 // * в начале строки значит не выводить текст окончания заклинания см void show_spell_off
 };
 
@@ -3716,7 +3708,12 @@ const cast_phrases_t cast_phrase =
 	cast_phrase_t{ "будет ловким", "... и человек разумный укрепляет ловкость свою."}, //ловкость
 	cast_phrase_t{ "защити нас от железа разящего", "... ни стрела, ни меч не пронзят печень вашу." }, // груп мигание
 	cast_phrase_t{ "огрожу беззакония их туманом", "...да защитит и покроет рассветная пелена тела ваши." }, // груп затуманивание
-	cast_phrase_t{ "буде вежды ваши открыты", "... и забота о ближнем отгоняет сон от очей их." } // груп внимательность
+	cast_phrase_t{ "буде вежды ваши открыты", "... и забота о ближнем отгоняет сон от очей их." },
+	cast_phrase_t{ "найдем новизну в рутине сражений!", "найдем новизну в рутине сражений!" }, // опыт на группу
+	cast_phrase_t{ "и пусть удача будет нашей спутницей!", "и пусть удача будет нашей спутницей!" }, // клич на удачу
+	cast_phrase_t{ "бей в глаз, не порти шкуру", "бей в глаз, не порти шкуру." }, // клич на дамагу
+	cast_phrase_t{ "...отче Велес, очи отвержеши!", "...надежда тщетна: не упадешь ли от одного взгляда его?" }, // SPELL_MASS_FAILURE
+	cast_phrase_t{ "Заклинати поврещение в сети заскопиены!", "...будет трапеза их сетью им, и мирное пиршество их - западнею." } // SPELL_MASS_NOFLEE
 };
 
 typedef std::map<ESpell, std::string> ESpell_name_by_value_t;
@@ -3966,6 +3963,8 @@ void init_ESpell_ITEM_NAMES()
 	ESpell_name_by_value[ESpell::SPELL_GROUP_BLINK] = "SPELL_GROUP_BLINK";
 	ESpell_name_by_value[ESpell::SPELL_GROUP_CLOUDLY] = "SPELL_GROUP_CLOUDLY";
 	ESpell_name_by_value[ESpell::SPELL_GROUP_AWARNESS] = "SPELL_GROUP_AWARNESS";
+	ESpell_name_by_value[ESpell::SPELL_MASS_FAILURE] = "SPELL_MASS_FAILURE";
+	ESpell_name_by_value[ESpell::SPELL_MASS_NOFLEE] = "SPELL_MASS_NOFLEE";
 
 	for (const auto& i : ESpell_name_by_value)
 	{

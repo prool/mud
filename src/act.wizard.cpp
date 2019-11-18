@@ -14,6 +14,7 @@
 
 #include "act.wizard.hpp"
 
+#include "action.targeting.hpp"
 #include "object.prototypes.hpp"
 #include "world.objects.hpp"
 #include "world.characters.hpp"
@@ -2188,7 +2189,7 @@ void do_stat_object(CHAR_DATA * ch, OBJ_DATA * j, const int virt)
 	switch (GET_OBJ_TYPE(j))
 	{
 	case OBJ_DATA::ITEM_BOOK:
-	
+
 		switch (GET_OBJ_VAL(j, 0))
 		{
 		case BOOK_SPELL:
@@ -2230,7 +2231,7 @@ void do_stat_object(CHAR_DATA * ch, OBJ_DATA * j, const int virt)
 			{
 				sprintf(buf, "содержит секрет способности : \"%s\"", feat_info[GET_OBJ_VAL(j, 1)].name);
 			}
-			else 
+			else
 				sprintf(buf, "неверный номер способности");
 			break;
 		case BOOK_RECPT:
@@ -5586,8 +5587,8 @@ void do_show(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	case 18:		// show crc
 		FileCRC::show(ch);
 		break;
-	case 19:		// show affected rooms
-		RoomSpells::ShowRooms(ch);
+	case 19:
+		RoomSpells::showAffectedRooms(ch);
 		break;
 	case 20: // money
 		MoneyDropStat::print(ch);
@@ -7194,29 +7195,28 @@ void do_sanitize(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 }
 
 // This is test command for different testings
-void do_godtest(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
-{
-	int skl;
-	std::ostringstream buffer;
-
-	skip_spaces(&argument);
-
-	if (!*argument)
-	{
-		send_to_char("Чувак, укажи ИД проверяемого скилла.\r\n", ch);
-		return;
+void do_godtest(CHAR_DATA *ch, char* /*argument*/, int /* cmd */, int /* subcmd */) {
+	send_to_char("В настоящий момент процiдурка пуста.\r\nЕсли вам хочется что-то godtest, придется ее реализовать.\r\n", ch);
+	return;
+/*
+	one_argument(argument, arg);
+	CHAR_DATA *victim = get_char_vis(ch, arg, FIND_CHAR_ROOM);
+	ActionTargeting::FilterType testFilter = [](CHAR_DATA*, CHAR_DATA* target) {return(target->get_name().find("га") ==  std::string::npos);};
+	Damage dmg(SkillDmg(SKILL_KICK), 5000, FightSystem::PHYS_DMG);
+	if (victim) {
+		ActionTargeting::FoesRosterType roster{ch, victim, testFilter};
+		for (auto victim : roster) {
+			send_to_char(ch, "Имя цели - %s.\r\n", (victim->get_name()).c_str());
+			dmg.process(ch, victim);
+		};
+	} else {
+		ActionTargeting::FriendsRosterType roster{ch, testFilter};
+		for (auto victim : roster) {
+			send_to_char(ch, "Имя цели - %s.\r\n", (victim->get_name()).c_str());
+			mag_single_target(ch->get_level(), ch, victim, nullptr, SPELL_BLESS, SAVING_NONE);
+		};
 	}
-	skl = Skill::GetNumByID(std::string(argument));
-	if (skl == SKILL_UNDEFINED)
-	{
-		send_to_char("Извини, братан, не нашел. :(\r\n", ch);
-		return;
-	}
-	else {
-		buffer << " Найден скилл " << skill_info[skl].name << " под номером " << skl << "\r\n";
-	}
-
-	send_to_char(buffer.str(), ch);
+*/
 }
 
 void do_loadstat(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)

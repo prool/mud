@@ -567,8 +567,8 @@ inline void TOGGLE_BIT(T& var, const uint32_t bit)
 #define GET_HELPER(ch)  ((ch)->helpers)
 #define GET_TITLE(ch)   ((ch)->player_data.title)
 #define GET_LEVEL(ch)   ((ch)->get_level())
-#define GET_MAX_MANA(ch)      (mana[MIN(50, (int) GET_REAL_WIS(ch))])
-//#define GET_MANA_COST(ch,spellnum)      (mana_cost_cs[(int)GET_LEVEL(ch)][spell_create[spellnum].runes.krug-1])
+#define GET_MAX_MANA(ch)      (mana[MIN(50, GET_REAL_WIS(ch))])
+#define SAME_ROOM(ch, tch)		(IN_ROOM(ch) == IN_ROOM(tch))
 #define GET_MANA_COST(ch,spellnum)      mag_manacost(ch,spellnum)
 #define GET_MANA_STORED(ch)   ((ch)->MemQueue.stored)
 #define GET_MEM_COMPLETED(ch) ((ch)->MemQueue.stored)
@@ -663,15 +663,10 @@ inline T VPOSI(const T val, const T min, const T max)
 #define GET_DRUNK_STATE(ch) ((ch)->player_specials->saved.DrunkState)
 
 #define GET_STR_ADD(ch) ((ch)->get_str_add())
-#define GET_REAL_STR(ch) (VPOSI_MOB(ch, 0, ((ch)->get_str() + GET_STR_ADD(ch))))
 #define GET_CON_ADD(ch) ((ch)->get_con_add())
-#define GET_REAL_CON(ch) (VPOSI_MOB(ch, 2, (ch)->get_con() + GET_CON_ADD(ch)))
 #define GET_WIS_ADD(ch) ((ch)->get_wis_add())
-#define GET_REAL_WIS(ch) (VPOSI_MOB(ch, 3, ((ch)->get_wis() + GET_WIS_ADD(ch))))
 #define GET_INT_ADD(ch) ((ch)->get_int_add())
-#define GET_REAL_INT(ch) (VPOSI_MOB(ch, 4, ((ch)->get_int() + GET_INT_ADD(ch))))
 #define GET_CHA_ADD(ch) ((ch)->get_cha_add())
-#define GET_REAL_CHA(ch) (VPOSI_MOB(ch, 5, ((ch)->get_cha() + GET_CHA_ADD(ch))))
 #define GET_SIZE(ch)    ((ch)->real_abils.size)
 #define GET_SIZE_ADD(ch)  ((ch)->add_abils.size_add)
 #define GET_REAL_SIZE(ch) (VPOSI(GET_SIZE(ch) + GET_SIZE_ADD(ch), 1, 100))
@@ -749,10 +744,6 @@ inline T VPOSI(const T val, const T min, const T max)
 #define NAME_LEVEL 5
 #define NAME_FINE(ch)          (NAME_GOD(ch)>1000)
 #define NAME_BAD(ch)           (NAME_GOD(ch)<1000 && NAME_GOD(ch))
-
-#define MAX_EXP_PERCENT   80
-#define CAP_SKILLS   200
-#define MAX_EXP_RMRT_PERCENT(ch) (MAX_EXP_PERCENT+ch->get_remort()*5)
 
 #define GET_COND(ch, i)		((ch)->player_specials->saved.conditions[(i)])
 #define GET_LOADROOM(ch)	((ch)->player_specials->saved.load_room)
@@ -1161,7 +1152,7 @@ inline T VPOSI(const T val, const T min, const T max)
             ((int) GET_CLASS(ch) == CLASS_NECROMANCER))
 
 #define IS_UNDEAD(ch) (IS_NPC(ch) && \
-	(MOB_FLAGGED(ch, MOB_RESURRECTED) || (GET_RACE(ch) == NPC_RACE_ZOMBIE)))
+	(MOB_FLAGGED(ch, MOB_RESURRECTED) || (GET_RACE(ch) == NPC_RACE_ZOMBIE) || (GET_RACE(ch) == NPC_RACE_GHOST)))
 
 #define LIKE_ROOM(ch) ((IS_CLERIC(ch) && ROOM_FLAGGED((ch)->in_room, ROOM_CLERIC)) || \
                        (IS_MAGIC_USER(ch) && ROOM_FLAGGED((ch)->in_room, ROOM_MAGE)) || \
@@ -1444,7 +1435,7 @@ public:
 	}
 };
 
-// ВЕЯРМН ЯЙНОХОЮЯРЕМН 
+// ВЕЯРМН ЯЙНОХОЮЯРЕМН
 template<class T> void StrTrim(T str) {
 	int start = 0; // number of leading spaces
 	char* buffer = str;
@@ -1597,12 +1588,12 @@ struct ParseFilter
 	char new_timesign;	   // знак времени < > =
 	time_t new_timedown;   // нижняя граница времени
 	time_t new_timeup;	   // верхняя граница времени
-	int filter_type;       // CLAN/EXCHANGE	
-	
+	int filter_type;       // CLAN/EXCHANGE
+
 	std::vector<int> affect_apply; // аффекты apply_types
 	std::vector<int> affect_weap;  // аффекты weapon_affects
 	std::vector<int> affect_extra; // аффекты extra_bits
-	
+
 	std::string show_obj_aff(OBJ_DATA *obj);
 
 private:

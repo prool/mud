@@ -499,7 +499,7 @@ OBJ_DATA::shared_ptr read_one_object_new(char **data, int *error)
 			}
 			else if (!strcmp(read_line, "Ench"))
 			{
-				obj::enchant tmp_aff;
+				ObjectEnchant::enchant tmp_aff;
 				std::stringstream text(buffer);
 				std::string tmp_buf;
 
@@ -1016,7 +1016,7 @@ void write_one_object(std::stringstream &out, OBJ_DATA * object, int location)
 	// Если у шмотки есть прототип то будем сохранять по обрезанной схеме, иначе
 	// придется сохранять все статсы шмотки.
 	auto proto = get_object_prototype(GET_OBJ_VNUM(object));
-	
+
 /*	auto obj_ptr = world_objects.get_by_raw_ptr(object);
 	if (!obj_ptr)
 	{
@@ -1073,7 +1073,7 @@ void write_one_object(std::stringstream &out, OBJ_DATA * object, int location)
 				{
 					out << "Skil: " << it.first << " " << it.second << "~\n";
 				}
-				
+
 			}
 		}
 		// Макс. прочность
@@ -1119,7 +1119,7 @@ void write_one_object(std::stringstream &out, OBJ_DATA * object, int location)
 			out << "Levl: " << GET_OBJ_LEVEL(object) << "~\n";
 		}
 		// была ли шмотка ренейм
-		if ((GET_OBJ_RENAME(object) != false) && (GET_OBJ_RENAME(object) != false)) 
+		if ((GET_OBJ_RENAME(object) != false) && (GET_OBJ_RENAME(object) != false))
 		{
 			out << "Rnme: 1~\n";
 		}
@@ -1177,7 +1177,7 @@ void write_one_object(std::stringstream &out, OBJ_DATA * object, int location)
 		// Флаги слотов экипировки
 		*buf = '\0';
 		*buf2 = '\0';
-		
+
 		auto wear = object->get_wear_flags();
 		tascii(&wear, 1, buf);
 
@@ -1427,12 +1427,12 @@ void write_one_object(std::stringstream &out, OBJ_DATA * object, int location)
 			out << "Prnt: " << GET_OBJ_PARENT(object) << "~\n";
 		}
 		// была ли шмотка ренейм
-		if (GET_OBJ_RENAME(object)) 
+		if (GET_OBJ_RENAME(object))
 			out << "Rnme: 1~\n";
 		else
 			out << "Rnme: 0~\n";
 		// есть ли на шмотке таймер при крафте
-		if (GET_OBJ_CRAFTIMER(object) > 0) 
+		if (GET_OBJ_CRAFTIMER(object) > 0)
 		{
 			out << "Ctmr: " << GET_OBJ_CRAFTIMER(object) << "~\n";
 		}
@@ -2371,7 +2371,7 @@ int Crash_load(CHAR_DATA * ch)
 		    obj->set_timer(si->time[fsize].timer);
 		    obj->dec_timer(timer_dec);
 		}
-		
+
 		std::string cap = obj->get_PName(0);
 		cap[0] = UPPER(cap[0]);
 
@@ -3433,7 +3433,7 @@ void Crash_save_all_rent(void)
 	// а по списку чаров, чтобы сохранить заодно и тех,
 	// кто перед ребутом ушел в ЛД с целью сохранить
 	// свои грязные денежки.
-	
+
 	character_list.foreach_on_copy([&](const auto& ch)
 	{
 		if (!IS_NPC(ch))
@@ -3441,7 +3441,8 @@ void Crash_save_all_rent(void)
 			save_char_objects(ch.get(), RENT_FORCED, 0);
 			log("Saving char: %s", GET_NAME(ch));
 			PLR_FLAGS(ch).unset(PLR_CRASH);
-			AFF_FLAGS(ch.get()).unset(EAffectFlag::AFF_GROUP);
+			//AFF_FLAGS(ch.get()).unset(EAffectFlag::AFF_GROUP);
+			(ch.get())->removeGroupFlags();
 			AFF_FLAGS(ch.get()).unset(EAffectFlag::AFF_HORSE);
 			extract_char(ch.get(), FALSE);
 		}

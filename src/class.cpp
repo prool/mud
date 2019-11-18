@@ -1983,6 +1983,13 @@ void init_warcry(CHAR_DATA *ch) // проставление кличей в об
 {
 	if (GET_CLASS(ch) == CLASS_GUARD)
 		SET_BIT(GET_SPELL_TYPE(ch, SPELL_WC_OF_DEFENSE), SPELL_KNOW); // клич призыв к обороне
+
+	if (GET_CLASS(ch) == CLASS_RANGER)
+	{
+		SET_BIT(GET_SPELL_TYPE(ch, SPELL_WC_EXPERIENSE), SPELL_KNOW); // клич опыта
+		SET_BIT(GET_SPELL_TYPE(ch, SPELL_WC_LUCK), SPELL_KNOW); // клич удачи
+		SET_BIT(GET_SPELL_TYPE(ch, SPELL_WC_PHYSDAMAGE), SPELL_KNOW); // клич +дамага
+	}
 	if (GET_CLASS(ch) == CLASS_WARRIOR)
 	{
 		SET_BIT(GET_SPELL_TYPE(ch, SPELL_WC_OF_BATTLE), SPELL_KNOW); // клич призыв битвы
@@ -2152,8 +2159,7 @@ void advance_level(CHAR_DATA * ch)
 	check_max_hp(ch);
 	ch->points.max_move += MAX(1, add_move);
 
-	// Set natural & race features
-	set_natural_feats(ch);
+	setAllInbornFeatures(ch);
 
 	if (IS_IMMORTAL(ch))
 	{
@@ -2165,26 +2171,6 @@ void advance_level(CHAR_DATA * ch)
 	TopPlayer::Refresh(ch);
 	levelup_events(ch);
 	ch->save_char();
-}
-
-void check_max_skills(CHAR_DATA *ch)
-{
-	for (const auto i : AVAILABLE_SKILLS)
-	{
-		if (ch->get_inborn_skill(i)  && i != SKILL_SATTACK)
-		{
-			int max = wis_bonus(GET_REAL_WIS(ch), WIS_MAX_LEARN_L20) * (GET_LEVEL(ch) + 1) / 20;
-			if (max > MAX_EXP_PERCENT)
-				max = MAX_EXP_PERCENT;
-			int sval = ch->get_inborn_skill(i) - max - GET_REMORT(ch) * 5;
-			if (sval < 0)
-				sval = 0;
-			if ((ch->get_inborn_skill(i) - sval) > (wis_bonus(GET_REAL_WIS(ch), WIS_MAX_LEARN_L20) * GET_LEVEL(ch) / 20))
-			{
-				ch->set_skill(i, ((wis_bonus(GET_REAL_WIS(ch), WIS_MAX_LEARN_L20) * GET_LEVEL(ch) / 20) + sval));
-			}
-		}
-	}
 }
 
 void decrease_level(CHAR_DATA * ch)
@@ -2229,7 +2215,6 @@ void decrease_level(CHAR_DATA * ch)
 		PRF_FLAGS(ch).unset(PRF_HOLYLIGHT);
 	}
 
-	//check_max_skills(ch);
 	TopPlayer::Refresh(ch);
 	ch->save_char();
 }
@@ -2299,7 +2284,7 @@ int invalid_anti_class(CHAR_DATA *ch, const OBJ_DATA* obj)
 		return (FALSE);
 	}
 	if ((IS_OBJ_ANTI(obj, EAntiFlag::ITEM_NOT_FOR_NOPK) && char_to_pk_clan(ch)))
-	{		
+	{
 		return (TRUE);
 	}
 
@@ -2774,14 +2759,9 @@ void init_spell_levels(void)
 				feat_info[sp_num].classknow[i[3]][j] = TRUE;
 				log("Classknow feat set '%s': %d kin: %d classes: %d Remort: %d Level: %d Natural: %d", feat_info[sp_num].name, sp_num, j, i[3], i[4], i[5], i[6]);
 
-				feat_info[sp_num].min_remort[i[3]][j] = i[4];
-				//log("Remort feat set '%d' kin '%d' classes %d value %d", sp_num, j, i[3], i[4]);
-
+				feat_info[sp_num].minRemort[i[3]][j] = i[4];
 				feat_info[sp_num].slot[i[3]][j] = i[5];
-				//log("Level feat set '%d' kin '%d' classes %d value %d", sp_num, j, i[3], i[5]);
-
-				feat_info[sp_num].natural_classfeat[i[3]][j] = i[6] ? true : false;
-				//log("Natural classfeature set '%d' kin '%d' classes %d", sp_num, j, i[3]);
+				feat_info[sp_num].inbornFeatureOfClass[i[3]][j] = i[6] ? true : false;
 			}
 	}
 	fclose(magic);
@@ -2952,7 +2932,7 @@ void init_basic_values(void)
 		{
 			int fields = 0;
 			switch (mode)
-			{			
+			{
 			case 1:
 				pointer = (int *) & (int_app[c].spell_aknowlege);
 				fields = sizeof(int_app[c])/sizeof(int);

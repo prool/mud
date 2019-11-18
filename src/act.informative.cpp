@@ -154,7 +154,7 @@ const char *diag_liquid_timer(const OBJ_DATA * obj);
 
 void do_quest(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 {
-	
+
 	send_to_char("У Вас нет никаких ежедневных поручений.\r\nЧтобы взять новые, наберите &Wпоручения получить&n.\r\n", ch);
 }
 
@@ -426,7 +426,7 @@ const char *diag_obj_timer(const OBJ_DATA* obj)
 		{
 			prot_timer = GET_OBJ_CRAFTIMER(obj);// если вещь скрафчена, смотрим ее таймер а не у прототипа
 		}
-		else 
+		else
 		{
 			prot_timer = obj_proto[GET_OBJ_RNUM(obj)]->get_timer();
 		}
@@ -802,7 +802,7 @@ void list_obj_to_char(OBJ_DATA * list, CHAR_DATA * ch, int mode, int show)
 				push = i;
 				push_count = 1;
 			}
-			else if ((!equal_obj(i, push)) 
+			else if ((!equal_obj(i, push))
 				|| (quest_item(i)))
 			{
 				if (clan_chest)
@@ -1462,7 +1462,7 @@ void list_one_char(CHAR_DATA * i, CHAR_DATA * ch, int skill_mode)
 
 		if (*aura_txt)
 			act(aura_txt, FALSE, i, 0, ch, TO_VICT);
-	
+
 		return;
 	}
 
@@ -2007,7 +2007,7 @@ void show_extend_room(const char * const description, CHAR_DATA * ch)
 		*pos = '\0';
 		if (pos > buf && *(pos - 1) == '\r')
 			*--pos = '\0';
-	}	
+	}
 
 	send_to_char(buf, ch);
 	send_to_char("\r\n", ch);
@@ -2269,7 +2269,7 @@ void look_at_room(CHAR_DATA * ch, int ignore_brief)
 			sprintf(buf2, "%s [%d]", world[ch->in_room]->name, GET_ROOM_VNUM(ch->in_room));
 			send_to_char(buf2, ch);
 		}
-		else    
+		else
 			send_to_char(world[ch->in_room]->name, ch);
 	}
 
@@ -2382,14 +2382,14 @@ void look_at_room(CHAR_DATA * ch, int ignore_brief)
 	send_to_char("&R&q", ch);
 	list_char_to_char(world[ch->in_room]->people, ch);
 	send_to_char("&Q&n", ch);
-	
+
 	// вход в новую зону
 	if (zone_table[world[ch->get_from_room()]->zone].number != zone_table[world[ch->in_room]->zone].number)
 	{
 		if (PRF_FLAGGED(ch, PRF_ENTER_ZONE))
 			print_zone_info(ch);
 		++zone_table[world[ch->in_room]->zone].traffic;
-		
+
 	}
 }
 
@@ -2562,7 +2562,7 @@ void hear_in_direction(CHAR_DATA * ch, int dir, int info_is)
 							tmpstr += " Вы слышите чей-то громкий скрип.\r\n";
 						else
 							tmpstr += " Вы слышите чей-то грозный скрип.\r\n";
-					} 
+					}
 					else if (real_sector(ch->in_room) != SECT_UNDERWATER)
 					{
 						if (GET_LEVEL(tch) < 5)
@@ -3788,11 +3788,12 @@ void print_do_score_all(CHAR_DATA *ch)
 	}
 	sprintf(buf + strlen(buf),
 		" %sИнициатива:  %4d %s|"
-		" %s  %+4d%% (%+4d) %s||\r\n"
-		" -------------------------------------------------------------------------------------\r\n",
+		" %s  %+4d%% (%+4d) %s||\r\n",
 		CCGRN(ch, C_NRM), calc_initiative(ch, false), CCCYN(ch, C_NRM),
 		CCRED(ch, C_NRM), GET_MOVEREG(ch), move_gain(ch), CCCYN(ch, C_NRM));
-
+	sprintf(buf + strlen(buf), "&c ||&n                    &c|                       &c| &gМаг. резист: %4d&c |&n                &c||\r\n", GET_MR(ch));
+	sprintf(buf + strlen(buf), "&c ||&n                    &c|                       &c| &gФиз. резист: %4d&c |&n                &c||&n\r\n", GET_PR(ch));
+	sprintf(buf + strlen(buf), " -------------------------------------------------------------------------------------\r\n");
 	if (has_horse(ch, FALSE))
 	{
 		if (on_horse(ch))
@@ -3810,10 +3811,10 @@ void print_do_score_all(CHAR_DATA *ch)
 	}
 
 	//Напоминаем о метке, если она есть.
-    ROOM_DATA *label_room = RoomSpells::find_affected_roomt(GET_ID(ch), SPELL_RUNE_LABEL);
+    ROOM_DATA *label_room = RoomSpells::findAffectedRoom(GET_ID(ch), SPELL_RUNE_LABEL);
 	if (label_room)
 	{
-		const int timer_room_label = RoomSpells::timer_affected_roomt(GET_ID(ch), SPELL_RUNE_LABEL);
+		const int timer_room_label = RoomSpells::getUniqueAffectDuration(GET_ID(ch), SPELL_RUNE_LABEL);
 		sprintf(buf + strlen(buf),
 				" %s|| &G&qВы поставили рунную метку в комнате %s%s||\r\n",
 				CCCYN(ch, C_NRM),
@@ -3822,7 +3823,7 @@ void print_do_score_all(CHAR_DATA *ch)
 		if (timer_room_label > 0)
 		{
 			*buf2 = '\0';
-			(timer_room_label + 1) / SECS_PER_MUD_HOUR ? sprintf(buf2, "%d %s.", (timer_room_label + 1) / SECS_PER_MUD_HOUR + 1, desc_count((timer_room_label + 1) / SECS_PER_MUD_HOUR + 1, WHAT_HOUR)) : sprintf(buf2, "менее часа.");			
+			(timer_room_label + 1) / SECS_PER_MUD_HOUR ? sprintf(buf2, "%d %s.", (timer_room_label + 1) / SECS_PER_MUD_HOUR + 1, desc_count((timer_room_label + 1) / SECS_PER_MUD_HOUR + 1, WHAT_HOUR)) : sprintf(buf2, "менее часа.");
 			sprintf(buf + strlen(buf),
 					" || Метка продержится еще %-58s||\r\n",buf2);
 			*buf2 = '\0';
@@ -4154,7 +4155,7 @@ void do_score(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	}
 
 	//Напоминаем о метке, если она есть.
-    ROOM_DATA *label_room = RoomSpells::find_affected_roomt(GET_ID(ch), SPELL_RUNE_LABEL);
+    ROOM_DATA *label_room = RoomSpells::findAffectedRoom(GET_ID(ch), SPELL_RUNE_LABEL);
     if (label_room)
 	{
         sprintf(buf + strlen(buf),
@@ -4236,7 +4237,7 @@ void do_score(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 			else
 				strcat(buf, "Вы немного пьяны.\r\n");
 		}
-			
+
 	}
 	if (GET_COND_M(ch, FULL))
 		strcat(buf, "Вы голодны.\r\n");
@@ -4944,7 +4945,7 @@ void do_who(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 					sprintf(buf + strlen(buf),
 							"\r\nПадежи: %s/%s/%s/%s/%s/%s Email: &S%s&s Пол: %s",
 							GET_PAD(tch, 0), GET_PAD(tch, 1), GET_PAD(tch, 2),
-							GET_PAD(tch, 3), GET_PAD(tch, 4), GET_PAD(tch, 5), 
+							GET_PAD(tch, 3), GET_PAD(tch, 4), GET_PAD(tch, 5),
 							GET_GOD_FLAG(ch, GF_DEMIGOD) ? "скрыто" : GET_EMAIL(tch),
 							genders[static_cast<int>(GET_SEX(tch))]);
 				}
@@ -5881,7 +5882,7 @@ void do_levels(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 
 	ptr += sprintf(ptr, "Уровень          Опыт            Макс на урв.\r\n");
 	for (i = 1; i < LVL_IMMORT; i++)
-	{	
+	{
 		ptr += sprintf(ptr, "%s[%2d] %13s-%-13s %-13s%s\r\n", (ch->get_level() == i) ? CCICYN(ch, C_NRM) : "", i,
 			thousands_sep(level_exp(ch, i)).c_str(),
 			thousands_sep(level_exp(ch, i + 1) - 1).c_str(),
@@ -6326,7 +6327,7 @@ void do_affects(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 			    sprintf(buf, "Заклинание : %s%-21s %-12s%s ", CCICYN(ch, C_NRM),  "награда",  buf2, CCNRM(ch, C_NRM));
 			    *buf2 = '\0';
 			    if (aff->modifier)
-			    {	
+			    {
 				    sprintf(buf2, "%s%-3d к параметру: %s%s%s",(aff->modifier > 0)? "+": "",  aff->modifier, CCIRED(ch, C_NRM), apply_types[(int) aff->location], CCNRM(ch, C_NRM));
 				    strcat(buf, buf2);
 			    }
