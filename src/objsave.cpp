@@ -2151,7 +2151,7 @@ int Crash_load(CHAR_DATA * ch)
 	if (!SAVEINFO(index))
 	{
 		sprintf(buf, "%s entering game with no equipment.", GET_NAME(ch));
-		printf("%s %s entering game with no equipment\n", ptime(), to_utf((char *)GET_NAME(ch))); // prool
+		//printf("%s %s entering game with no equipment\n", ptime(), to_utf((char *)GET_NAME(ch))); // prool
 		mudlog(buf, NRM, MAX(LVL_GOD, GET_INVIS_LEV(ch)), SYSLOG, TRUE);
 		return (1);
 	}

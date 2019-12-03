@@ -2754,7 +2754,7 @@ int write_to_descriptor(socket_t desc, const char *txt, size_t total)
 		if (bytes_written < 0)
 		{
 			// Fatal error.  Disconnect the player_data.
-			perror("SYSERR: write_to_descriptor");
+			//perror("SYSERR: write_to_descriptor"); // remarked by prool
 			return (0);
 		}
 		else if (bytes_written == 0)
@@ -3455,7 +3455,7 @@ void close_socket(DESCRIPTOR_DATA * d, int direct)
 				Crash_ldsave(d->character.get());
 
 				sprintf(buf, "Closing link to: %s.", GET_NAME(d->character));
-				printf("%s %s\n", ptime(), to_utf(buf)); // prool
+				//printf("%s %s\n", ptime(), to_utf(buf)); // prool
 				mudlog(buf, NRM, MAX(LVL_GOD, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 			}
 			d->character->desc = NULL;

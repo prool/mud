@@ -216,7 +216,7 @@ bool found;
 
 // поиск трупа
 
-printf("%s prool debug: accio trup %s ", ptime(), to_utf((char *)GET_NAME(ch)));
+//printf("%s prool debug: accio trup %s ", ptime(), to_utf((char *)GET_NAME(ch)));
 
 sprintf(buf,"Боги знают, что вас зовут %s\r\n", GET_NAME(ch)); send_to_char(buf,ch);
 

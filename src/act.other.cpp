@@ -170,7 +170,7 @@ void do_quit(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 			act("$n покинул$g игру.", TRUE, ch, 0, 0, TO_ROOM | TO_ARENA_LISTEN);
 		sprintf(buf, "%s quit the game.", GET_NAME(ch));
 		mudlog(buf, NRM, MAX(LVL_GOD, GET_INVIS_LEV(ch)), SYSLOG, TRUE);
-		printf("%s %s\n", ptime(), to_utf(buf)); // prool
+		//printf("%s %s\n", ptime(), to_utf(buf)); // prool
 		send_to_char("До свидания, странник... Мы ждем тебя снова!\r\n", ch);
 
 		long depot_cost = static_cast<long>(Depot::get_total_cost_per_day(ch));
