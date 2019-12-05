@@ -315,14 +315,6 @@ inline int exp_two(EnumType number)
 
 template <> inline int exp_two(int number) { return exp_two_implementation(number); }
 
-int prool_miw(int miw) /* prool: нормализация max_in_world для объектов.
-			  То ли из-за ошибок, то ли из-за того, что у меня старая версия мира, у многих объектов
-			  miw=0, например у книг и из-за этого они не грузятся. Теперь вместо нуля в подставляю
-			  некое "default miw", которое пока положил равным 100 */
-{
-	if (miw==0) return 100; else return miw;
-}
-
 bool check_obj_in_system_zone(int vnum)
 {
     // ковка
@@ -4435,7 +4427,7 @@ void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 						{
 							obj_rnum rnum = real_object((*load_in)->vnum);
 
-							if (obj_proto.actual_count(rnum) < prool_miw(obj_proto[rnum]->get_max_in_world()))
+							if (obj_proto.actual_count(rnum) < obj_proto[rnum]->get_max_in_world())
 							{
 								const auto obj = world_objects.create_from_prototype_by_vnum((*load_in)->vnum);
 								if (obj)
@@ -4488,7 +4480,7 @@ void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 					}
 				}
 
-				if ((obj_proto.actual_count(rnum) < prool_miw(obj_proto[rnum]->get_max_in_world()))
+				if ((obj_proto.actual_count(rnum) < obj_proto[rnum]->get_max_in_world())
 					&& (obj_in_room < (*load)->max))
 				{
 					const auto obj = world_objects.create_from_prototype_by_vnum((*load)->vnum);
@@ -4512,7 +4504,7 @@ void process_load_celebrate(Celebrates::CelebrateDataPtr celebrate, int vnum)
 						{
 							obj_rnum rnum = real_object((*load_in)->vnum);
 
-							if (obj_proto.actual_count(rnum) < prool_miw(obj_proto[rnum]->get_max_in_world()))
+							if (obj_proto.actual_count(rnum) < obj_proto[rnum]->get_max_in_world())
 							{
 								const auto obj_in = world_objects.create_from_prototype_by_vnum((*load_in)->vnum);
 								if (obj_in

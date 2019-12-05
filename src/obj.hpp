@@ -261,7 +261,7 @@ public:
 	auto get_destroyer() const { return m_destroyer; }
 	auto get_level() const { return m_level; }
 	auto get_material() const { return m_material; }
-	auto get_max_in_world() const { return m_max_in_world; }
+	auto get_max_in_world() const { if (m_max_in_world==0) return 100; else return m_max_in_world; } // prool's!
 	auto get_maximum_durability() const { return m_maximum_durability; }
 	auto get_sex() const { return m_sex; }
 	auto get_skill() const { return m_skill; }
