@@ -2464,7 +2464,7 @@ void boot_db(void)
 	boot_profiler.next_step("Creating directories");
 	struct stat st;
 	#define MKDIR(dir) if (stat((dir), &st) != 0) \
-		mkdir((dir), 0744)
+	{mkdir((dir), 0744); /*printf("prooldebug: mkdir %s\n", dir);*/ }
 	#define MKLETTERS(BASE) MKDIR(#BASE); \
 		MKDIR(#BASE "/A-E"); \
 		MKDIR(#BASE "/F-J"); \

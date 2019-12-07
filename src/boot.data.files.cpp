@@ -47,7 +47,7 @@ bool DataFile::open()
 	m_file = fopen(file_name.c_str(), "r");
 	if (nullptr == m_file)
 	{
-		log("SYSERR: %s: %s", file_name.c_str(), strerror(errno));
+		log("SYSERR 1: %s: %s", file_name.c_str(), strerror(errno));
 		exit(1);
 	}
 	return true;
