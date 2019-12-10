@@ -245,7 +245,7 @@ if (found==true)
 		if (trup->get_in_room() <= NOWHERE)
 		        {
 		        send_to_char("Мы нашли труп, но он находится не в какой-то комнате, а где-то еще (может, у кого-то в инвентаре)\r\nТакие трупы не мы не можем призвать!\r\n", ch);
-			printf("SOMEWHERE\n");
+			//printf("SOMEWHERE\n");
 			return;
 		        }
 

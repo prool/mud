@@ -48,37 +48,42 @@ int l, vnum;
 //tmp=fopen("prooltest.txt","w"); fclose(tmp);
 
 l=strlen(filename);
-printf("substr=%s\n",filename+l-3);
-printf("vnum=%i\n", vnum=atoi(filename+10));
+vnum=atoi(filename+10);
+//printf("substr=%s\n",filename+l-3);
+//printf("vnum=%i\n", vnum);
 
 tmp=fopen(filename,"w");
-if (nullptr != tmp) printf("file %s created\n", filename);
-else {printf("can't create file %s\n",filename);exit(1);}
+if (nullptr != tmp) {/*printf("file %s created\n", filename);*/}
+else {printf("can't create file %s\n",filename); exit(1);}
 
 if (!strcmp(filename+l-3,"zon"))
 	{
-	printf("create empty zone in file %s. vnum=%i\n",filename,vnum);
+	//printf("create empty zone in file %s. vnum=%i\n",filename,vnum);
 	fprintf(tmp,"#%i\nEmpty zone created by prool_zaplatka()~\n#1 0 0\n%i99 1 0 0 *\nS\n$\n",vnum,vnum);
 	}
 else if (!strcmp(filename+l-3,"trg"))
 	{
-	printf("create empty trg in file %s. vnum=%i\n",filename,vnum);
+	//printf("create empty trg in file %s. vnum=%i\n",filename,vnum);
 	fprintf(tmp,"*Empty trg created by prool_zaplatka()\n$\n$\n");
 	}
 else if (!strcmp(filename+l-3,"wld"))
 	{
-	printf("create empty wld in file %s. vnum=%i\n",filename,vnum);
+	//printf("create empty wld in file %s. vnum=%i\n",filename,vnum);
 	fprintf(tmp,"$\n$\n");
 	}
 else if (!strcmp(filename+l-3,"mob"))
 	{
-	printf("create empty mob in file %s. vnum=%i\n",filename,vnum);
+	//printf("create empty mob in file %s. vnum=%i\n",filename,vnum);
 	fprintf(tmp,"$\n");
 	}
 else if (!strcmp(filename+l-3,"obj"))
 	{
-	printf("create empty obj in file %s. vnum=%i\n",filename,vnum);
+	//printf("create empty obj in file %s. vnum=%i\n",filename,vnum);
 	fprintf(tmp,"$\n$\n");
+	}
+else	{
+	printf("prool_zaplatka(): can't open datafile %s. exit!\n",filename);
+	exit(1);
 	}
 
 if (fclose(tmp)) {printf("can't close file %s\n", filename); exit(1);}
@@ -93,8 +98,8 @@ bool DataFile::open()
 	m_file = fopen(file_name.c_str(), "r");
 	if (nullptr == m_file)
 	{
-		log("SYSERR 1: %s: %s", file_name.c_str(), strerror(errno));
-		m_file=prool_zaplatka(file_name.c_str());
+		log("SYSERR #1: %s: %s", file_name.c_str(), strerror(errno));
+		m_file=prool_zaplatka(file_name.c_str()); // prool
 		//exit(1); // prool
 	}
 	return true;

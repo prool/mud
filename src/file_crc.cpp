@@ -147,6 +147,7 @@ void load()
 		checked = true;
 	}
 
+	//checked = true; // prool fool
 	if (!checked)
 		add_message("SYSERROR: не произведена сверка контрольной суммы файла: %s", file_name);
 }
