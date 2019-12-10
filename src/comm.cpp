@@ -856,7 +856,7 @@ int main_function(int argc, char **argv)
 	else
 	{
 		log("Running game on port %d.", port);
-		printf("Running game on port %d\n", port);
+		printf("Port %d\n", port);
 		prool_port=port;
 
 		// стль и буст юзаются уже немало где, а про их экспешены никто не думает
@@ -2846,7 +2846,7 @@ ssize_t perform_socket_read(socket_t desc, char *read_point, size_t space_left)
 	 * We don't know what happened, cut them off. This qualifies for
 	 * a SYSERR because we have no idea what happened at this point.
 	 */
-	//perror("SYSERR 1: perform_socket_read: about to lose connection"); // comment by prool
+	//perror("SYSERR 2: perform_socket_read: about to lose connection"); // comment by prool
 #if 0 // prool debug
 	if (getpeername(desc, &peer, &peer_len) == -1) {
 		      perror("getpeername() failed");
