@@ -81,7 +81,7 @@
 #define CASES_FILE "cases.xml"
 #define RANDOMOBJ_FILE "randomobj.xml"
 #define SPEEDWALKS_FILE "speedwalks.xml"
-#define CLASS_LIMIT_FILE "class_limit.xml"
+#define CLASS_LIMIT_FILE "class.basestatlimits.xml"
 #define DAILY_FILE "daily.xml"
 #define CITIES_FILE "cities.xml"
 #define QUESTBODRICH_FILE "quest_bodrich.xml"
@@ -2838,8 +2838,8 @@ void boot_db(void)
 	Bonus::bonus_log_load();
 	load_speedwalk();
 
-	boot_profiler.next_step("Loading class_limit.xml");
-	log("Load class_limit.xml");
+	boot_profiler.next_step("Loading class base stat limits");
+	log("Loading class base stat limits");
 	load_class_limit();
 	load_cities();
 	shutdown_parameters.mark_boot_time();
@@ -5753,7 +5753,7 @@ void do_remort(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 	}
 	else
 	{
-		ch->crop_skills();
+		ch->set_skill(ch->get_remort());
 		for (i = 1; i <= MAX_SPELLS; i++)
 		{
 			if (GET_CLASS(ch) == CLASS_DRUID)

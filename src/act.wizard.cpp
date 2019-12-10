@@ -2806,7 +2806,7 @@ void do_stat_character(CHAR_DATA * ch, CHAR_DATA * k, const int virt)
 		send_to_char(ch, "Умения:&c");
 		for (const auto counter : AVAILABLE_SKILLS)
 		{
-			if (k->get_skill(counter))
+			if (*skill_info[counter].name != '!' && k->get_skill(counter))
 			{
 				send_to_char(ch, " %s:[%3d]", skill_info[counter].name, k->get_skill(counter));
 			}
@@ -5735,6 +5735,7 @@ struct set_struct		/*
 	{"autobot",LVL_IMPL, PC, BINARY}, // 61
 	{"hryvn",LVL_IMPL, PC, NUMBER}, // 62
 	{"scriptwriter",LVL_IMPL, PC, BINARY}, // 63
+	{"spammer",LVL_GOD, PC, BINARY}, // 64	
 	{"\n", 0, BOTH, MISC}
 };
 
@@ -6431,6 +6432,11 @@ int perform_set(CHAR_DATA * ch, CHAR_DATA * vict, int mode, char *val_arg)
 	case 63: // флаг автобота
 		{
 			SET_OR_REMOVE(on, off, PLR_FLAGS(vict), PLR_SCRIPTWRITER);
+			break;
+		}
+	case 64: // флаг спамера
+		{
+			SET_OR_REMOVE(on, off, PLR_FLAGS(vict), PLR_SPAMMER);
 			break;
 		}
 	default:
@@ -7197,26 +7203,6 @@ void do_sanitize(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
 // This is test command for different testings
 void do_godtest(CHAR_DATA *ch, char* /*argument*/, int /* cmd */, int /* subcmd */) {
 	send_to_char("В настоящий момент процiдурка пуста.\r\nЕсли вам хочется что-то godtest, придется ее реализовать.\r\n", ch);
-	return;
-/*
-	one_argument(argument, arg);
-	CHAR_DATA *victim = get_char_vis(ch, arg, FIND_CHAR_ROOM);
-	ActionTargeting::FilterType testFilter = [](CHAR_DATA*, CHAR_DATA* target) {return(target->get_name().find("га") ==  std::string::npos);};
-	Damage dmg(SkillDmg(SKILL_KICK), 5000, FightSystem::PHYS_DMG);
-	if (victim) {
-		ActionTargeting::FoesRosterType roster{ch, victim, testFilter};
-		for (auto victim : roster) {
-			send_to_char(ch, "Имя цели - %s.\r\n", (victim->get_name()).c_str());
-			dmg.process(ch, victim);
-		};
-	} else {
-		ActionTargeting::FriendsRosterType roster{ch, testFilter};
-		for (auto victim : roster) {
-			send_to_char(ch, "Имя цели - %s.\r\n", (victim->get_name()).c_str());
-			mag_single_target(ch->get_level(), ch, victim, nullptr, SPELL_BLESS, SAVING_NONE);
-		};
-	}
-*/
 }
 
 void do_loadstat(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)

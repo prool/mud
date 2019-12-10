@@ -122,6 +122,7 @@ extern std::vector<City> cities;
 extern int global_uid;
 extern void change_leader(CHAR_DATA *ch, CHAR_DATA *vict);
 extern char *find_exdesc(char *word, const EXTRA_DESCR_DATA::shared_ptr& list);
+extern void setSkillCooldown(CHAR_DATA* ch, ESkill skill, int cooldownInPulses);
 
 char *fname(const char *namelist)
 {
@@ -408,6 +409,15 @@ void affect_modify(CHAR_DATA * ch, byte loc, int mod, const EAffectFlag bitv, bo
 		break;
 	case APPLY_PR:
 		GET_PR(ch) += mod; //скиллрезист
+		break;
+	case APPLY_PERCENT_DAM:
+		ch->add_abils.percent_dam_add += mod;
+		break;
+	case APPLY_PERCENT_EXP:
+		ch->add_abils.percent_exp_add += mod;
+		break;
+	case APPLY_SPELL_BLINK:
+		ch->add_abils.percent_spell_blink += mod;
 		break;
 	default:
 		log("SYSERR: Unknown apply adjust %d attempt (%s, affect_modify).", loc, __FILE__);
@@ -2083,27 +2093,12 @@ void equip_char(CHAR_DATA * ch, OBJ_DATA * obj, int pos)
 
 	}
 
-	//if (!IS_NPC(ch) && !check_armor_type(ch, obj))
-	//{
-	//	act("$n попытал$u использовать $o3, но у н$s ничего не получилось.",
-	//			FALSE, ch, obj, 0, TO_ROOM);
-	//	if (!obj->carried_by)
-	//		obj_to_char(obj, ch);
-	//	return;
-	//} Нафиг недоделки (Купала)
-
 	if (obj->get_carried_by())
 	{
 		obj_from_char(obj);
 	}
 
-	//if (GET_EQ(ch, WEAR_LIGHT) &&
-	//  GET_OBJ_TYPE(GET_EQ(ch, WEAR_LIGHT)) == ITEM_LIGHT && GET_OBJ_VAL(GET_EQ(ch, WEAR_LIGHT), 2))
-	//  was_lamp = TRUE;
-	//Polud светить должно не только то что надето для освещения, а любой источник света
 	was_lamp = is_wear_light(ch);
-	//-Polud
-
 	GET_EQ(ch, pos) = obj;
 	obj->set_worn_by(ch);
 	obj->set_worn_on(pos);
@@ -2181,6 +2176,10 @@ void equip_char(CHAR_DATA * ch, OBJ_DATA * obj, int pos)
 		}
 		affect_total(ch);
 		check_light(ch, was_lamp, was_lgt, was_hlgt, was_hdrk, 1);
+	}
+
+	if (ch->get_fighting() && (GET_OBJ_TYPE(obj) == OBJ_DATA::ITEM_WEAPON || pos == WEAR_SHIELD)) {
+		setSkillCooldown(ch, SKILL_GLOBAL_COOLDOWN, 2);
 	}
 }
 
@@ -2370,8 +2369,7 @@ unsigned int deactivate_stuff(CHAR_DATA * ch, OBJ_DATA * obj,
 
 //  0x40 - show setstuff related messages
 //  0x80 - no total affect update
-OBJ_DATA *unequip_char(CHAR_DATA * ch, int pos)
-{
+OBJ_DATA *unequip_char(CHAR_DATA * ch, int pos) {
 	int was_lgt = AFF_FLAGGED(ch, EAffectFlag::AFF_SINGLELIGHT) ? LIGHT_YES : LIGHT_NO,
 				  was_hlgt = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYLIGHT) ? LIGHT_YES : LIGHT_NO,
 							 was_hdrk = AFF_FLAGGED(ch, EAffectFlag::AFF_HOLYDARK) ? LIGHT_YES : LIGHT_NO, was_lamp = FALSE;
@@ -2380,26 +2378,18 @@ OBJ_DATA *unequip_char(CHAR_DATA * ch, int pos)
 
 	REMOVE_BIT(pos, (0x80 | 0x40));
 
-	if (pos < 0 || pos >= NUM_WEARS)
-	{
+	if (pos < 0 || pos >= NUM_WEARS) {
 		log("SYSERR: unequip_char(%s,%d) - unused pos...", GET_NAME(ch), pos);
 		return nullptr;
 	}
 
 	OBJ_DATA* obj = GET_EQ(ch, pos);
-	if (nullptr == obj)
-	{
+	if (nullptr == obj) {
 		log("SYSERR: unequip_char(%s,%d) - no equip...", GET_NAME(ch), pos);
 		return nullptr;
 	}
 
-//	if (GET_EQ(ch, WEAR_LIGHT) &&
-//	    GET_OBJ_TYPE(GET_EQ(ch, WEAR_LIGHT)) == ITEM_LIGHT && GET_OBJ_VAL(GET_EQ(ch, WEAR_LIGHT), 2))
-//		was_lamp = TRUE;
-	//Polud светить должно не только то что надето для освещения, а любой источник света
 	was_lamp = is_wear_light(ch);
-	//-Polud
-
 
 	if (ch->in_room == NOWHERE)
 		log("SYSERR: ch->in_room = NOWHERE when unequipping char %s.", GET_NAME(ch));
@@ -2408,31 +2398,22 @@ OBJ_DATA *unequip_char(CHAR_DATA * ch, int pos)
 
 	if (OBJ_FLAGGED(obj, EExtraFlag::ITEM_SETSTUFF))
 		for (; it != OBJ_DATA::set_table.end(); it++)
-			if (it->second.find(GET_OBJ_VNUM(obj)) != it->second.end())
-			{
+			if (it->second.find(GET_OBJ_VNUM(obj)) != it->second.end()) {
 				deactivate_stuff(ch, obj, it, 0 | (show_msg ? 0x40 : 0), 0);
 				break;
 			}
 
-	if (!OBJ_FLAGGED(obj, EExtraFlag::ITEM_SETSTUFF) || it == OBJ_DATA::set_table.end())
-	{
-		for (j = 0; j < MAX_OBJ_AFFECT; j++)
-		{
+	if (!OBJ_FLAGGED(obj, EExtraFlag::ITEM_SETSTUFF) || it == OBJ_DATA::set_table.end()) {
+		for (j = 0; j < MAX_OBJ_AFFECT; j++) {
 			affect_modify(ch, obj->get_affected(j).location, obj->get_affected(j).modifier, static_cast<EAffectFlag>(0), FALSE);
 		}
 
-		if (ch->in_room != NOWHERE)
-		{
-			for (const auto& j : weapon_affect)
-			{
-				if (j.aff_bitvector == 0
-					|| !IS_OBJ_AFF(obj, j.aff_pos))
-				{
+		if (ch->in_room != NOWHERE) {
+			for (const auto& j : weapon_affect) {
+				if (j.aff_bitvector == 0 || !IS_OBJ_AFF(obj, j.aff_pos)) {
 					continue;
 				}
-				if (IS_NPC(ch)
-					&& AFF_FLAGGED(&mob_proto[GET_MOB_RNUM(ch)], static_cast<EAffectFlag>(j.aff_bitvector)))
-				{
+				if (IS_NPC(ch) && AFF_FLAGGED(&mob_proto[GET_MOB_RNUM(ch)], static_cast<EAffectFlag>(j.aff_bitvector))) {
 					continue;
 				}
 				affect_modify(ch, APPLY_NONE, 0, static_cast<EAffectFlag>(j.aff_bitvector), FALSE);
@@ -2448,12 +2429,9 @@ OBJ_DATA *unequip_char(CHAR_DATA * ch, int pos)
 	obj->set_worn_on(NOWHERE);
 	obj->set_next_content(nullptr);
 
-	if (!skip_total)
-	{
-		if (obj_sets::is_set_item(obj))
-		{
-			if (obj->get_activator().first)
-			{
+	if (!skip_total) {
+		if (obj_sets::is_set_item(obj)) {
+			if (obj->get_activator().first) {
 				obj_sets::print_off_msg(ch, obj);
 			}
 			ch->obj_bonus().update(ch);

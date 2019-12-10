@@ -140,7 +140,7 @@ namespace RoomSpells {
 	}
 
 	template<typename F>
-	int removeAffectFromRooms(long casterID, int spellnum, const F& filter) {
+	int removeAffectFromRooms(int spellnum, const F& filter) {
 		for (const auto room : aff_room_list) {
 			const auto& affect = std::find_if(room->affected.begin(), room->affected.end(), filter);
 			if (affect != room->affected.end()) {
@@ -157,7 +157,7 @@ namespace RoomSpells {
 		auto filter =
 			[&casterID, &spellnum](auto& af)
 				{return (af->caster_id == casterID && af->type == spellnum);};
-		removeAffectFromRooms(casterID, spellnum, filter);
+		removeAffectFromRooms(spellnum, filter);
 	}
 
 	int removeControlledRoomAffect(CHAR_DATA *ch) {
@@ -165,7 +165,7 @@ namespace RoomSpells {
 		auto filter =
 			[&casterID](auto& af)
 				{return (af->caster_id == casterID && IS_SET(spell_info[af->type].routines, MAG_NEED_CONTROL));};
-		return removeAffectFromRooms(casterID, 0, filter);
+		return removeAffectFromRooms(0, filter);
 	}
 
 	void sendAffectOffMessageToRoom(int affectType, room_rnum room) {
@@ -946,8 +946,13 @@ float func_koef_duration(int spellnum, int percent)
 		case SPELL_DEXTERITY:
 			return 1 + percent / 400;
 		break;
+		case SPELL_GROUP_BLINK:
+		case SPELL_BLINK:
+			return 1 + percent / 400;
+		break;
 		default:
 			return 1;
+		break;
 	}
 }
 
@@ -2077,7 +2082,7 @@ int mag_damage(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int 
 		savetype = SAVING_STABILITY;
 		ndice = 5;
 		sdice = 6;
-		adice = level;
+		adice = level + ch->get_remort() * 3;
 		if (GET_POS(victim) > POS_SITTING &&
 				!WAITLESS(victim) && (number(1, 999)  > GET_AR(victim) * 10) &&
 				(!general_savingthrow(ch, victim, SAVING_REFLEX, CALC_SUCCESS(modi, 30))))
@@ -3592,8 +3597,9 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 		break;
 	case SPELL_GROUP_BLINK:
 	case SPELL_BLINK:
+		af[0].location = APPLY_SPELL_BLINK;
+		af[0].modifier = 5 + GET_REMORT(ch) * 2 / 3.0;
 		af[0].duration = pc_duration(victim, 20, SECS_PER_PLAYER_AFFECT * GET_REMORT(ch), 1, 0, 0) * koef_duration;
-		af[0].bitvector = to_underlying(EAffectFlag::AFF_SPELL_BLINK);
 		to_room = "$n начал$g мигать.";
 		to_vict = "Вы начали мигать.";
 		spellnum = SPELL_BLINK;
@@ -3861,7 +3867,7 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 
 	case SPELL_STONEBONES:
 		{
-		if (GET_MOB_VNUM(victim) < MOB_SKELETON || GET_MOB_VNUM(victim) > LAST_NECR_MOB)
+		if (GET_MOB_VNUM(victim) < MOB_SKELETON || GET_MOB_VNUM(victim) > LAST_NECRO_MOB)
 		{
 			send_to_char(NOEFFECT, ch);
 			success = FALSE;
@@ -4090,7 +4096,7 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 	case SPELL_WC_LUCK:
 		{
 		af[0].location = APPLY_MORALE;
-		af[0].modifier = MAX(1, ch->get_skill(SKILL_WARCRY) / 20);
+		af[0].modifier = MAX(1, ch->get_skill(SKILL_WARCRY) / 20.0);
 		af[0].duration = pc_duration(victim, 2, ch->get_skill(SKILL_WARCRY), 20, 10, 0) * koef_duration;
 		to_room = nullptr;
 		break;
@@ -4099,7 +4105,7 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 	case SPELL_WC_EXPERIENSE:
 		{
 		af[0].location = APPLY_PERCENT_EXP;
-		af[0].modifier = MAX(1, ch->get_skill(SKILL_WARCRY) / 20);
+		af[0].modifier = MAX(1, ch->get_skill(SKILL_WARCRY) / 20.0);
 		af[0].duration = pc_duration(victim, 2, ch->get_skill(SKILL_WARCRY), 20, 10, 0) * koef_duration;
 		to_room = nullptr;
 		break;
@@ -4108,7 +4114,7 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 	case SPELL_WC_PHYSDAMAGE:
 		{
 		af[0].location = APPLY_PERCENT_DAM;
-		af[0].modifier = MAX(1, ch->get_skill(SKILL_WARCRY) / 20);
+		af[0].modifier = MAX(1, ch->get_skill(SKILL_WARCRY) / 20.0);
 		af[0].duration = pc_duration(victim, 2, ch->get_skill(SKILL_WARCRY), 20, 10, 0) * koef_duration;
 		to_room = nullptr;
 		break;
@@ -4126,7 +4132,7 @@ int mag_affects(int level, CHAR_DATA * ch, CHAR_DATA * victim, int spellnum, int
 	case SPELL_WC_OF_DEFENSE:
 		{
 		af[0].location = APPLY_SAVING_CRITICAL;
-		af[0].modifier -= ch->get_skill(SKILL_WARCRY) / 10;
+		af[0].modifier -= ch->get_skill(SKILL_WARCRY) / 10.0;
 		af[0].duration = pc_duration(victim, 2, ch->get_skill(SKILL_WARCRY), 20, 10, 0) * koef_duration;
 		af[1].location = APPLY_SAVING_REFLEX;
 		af[1].modifier -= ch->get_skill(SKILL_WARCRY) / 10;
@@ -4442,18 +4448,18 @@ int mag_summons(int level, CHAR_DATA * ch, OBJ_DATA * obj, int spellnum, int sav
 			}
 			else if (corpse_mob_level <= 34)
 			{
-				mob_num = MOB_NECR_TANK;
+				mob_num = MOB_NECROTANK;
 			}
 			else
 			{
 				int rnd = number(1,100);
-				mob_num = MOB_NECR_DAMAGER;
+				mob_num = MOB_NECRODAMAGER;
 				if (rnd > 50) {
-					mob_num = MOB_NECR_BRIZER;
+					mob_num = MOB_NECROBREATHER;
 				}
 			}
 
-			// MOB_NECR_CASTER disabled, cant cast
+			// MOB_NECROCASTER disabled, cant cast
 
 			if (GET_LEVEL(ch) + GET_REMORT(ch) + 4 < 15 && mob_num > MOB_ZOMBIE)
 			{
@@ -4596,7 +4602,7 @@ int mag_summons(int level, CHAR_DATA * ch, OBJ_DATA * obj, int spellnum, int sav
 		return 0;
 	}
 
-	if (spellnum == SPELL_ANIMATE_DEAD && mob_num >= MOB_NECR_DAMAGER && mob_num < LAST_NECR_MOB) {
+	if (spellnum == SPELL_ANIMATE_DEAD && mob_num >= MOB_NECRODAMAGER && mob_num <= LAST_NECRO_MOB) {
 		// add 10% mob health by remort
 		mob->set_max_hit(mob->get_max_hit() * (1.0 + ch->get_remort() / 10.0));
 		mob->set_hit(mob->get_max_hit());
@@ -4655,8 +4661,7 @@ int mag_summons(int level, CHAR_DATA * ch, OBJ_DATA * obj, int spellnum, int sav
 	}
 
 	MOB_FLAGS(mob).set(MOB_CORPSE);
-	if (spellnum == SPELL_CLONE)  	// Don't mess up the proto with strcpy.
-	{
+	if (spellnum == SPELL_CLONE) {
 		sprintf(buf2, "двойник %s %s", GET_PAD(ch, 1), GET_NAME(ch));
 		mob->set_pc_name(buf2);
 		sprintf(buf2, "двойник %s", GET_PAD(ch, 1));
@@ -4757,8 +4762,21 @@ int mag_summons(int level, CHAR_DATA * ch, OBJ_DATA * obj, int spellnum, int sav
 
 	}
 
-	if (spellnum == SPELL_SUMMON_FIREKEEPER)
-	{
+	if (spellnum == SPELL_SUMMON_KEEPER) {
+		// Svent TODO: не забыть перенести это в ability
+		mob->set_level(ch->get_level());
+        int rating  = (ch->get_skill(SKILL_LIGHT_MAGIC) + GET_REAL_CHA(ch))/2;
+		GET_MAX_HIT(mob) = GET_HIT(mob) = 50 + dice(10, 10) + rating*6;
+		mob->set_skill(SKILL_PUNCH, 10 + rating*1.5);
+		mob->set_skill(SKILL_RESCUE, 50 + rating);
+		mob->set_str(3+rating/5);
+		mob->set_dex(10+rating/5);
+		mob->set_con(10+rating/5);
+		GET_HR(mob) = rating/2 - 4;
+		GET_AC(mob) = 100 -  rating*2.65;
+	}
+
+	if (spellnum == SPELL_SUMMON_FIREKEEPER) {
 		AFFECT_DATA<EApplyLocation> af;
 		af.type = SPELL_CHARM;
 		af.duration = duration;
@@ -5604,7 +5622,7 @@ const spl_message mag_messages[] =
 	 "Вы высоко подбросили комок земли и он, увеличиваясь на глазах, обрушился вниз.",
 	 "$n высоко подбросил$g комок земли, который, увеличиваясь на глазах, стал падать вниз.",
 	 nullptr,
-	 0.05, 20, 2, 1, 4, 1, 8},
+	 0.05, 20, 2, 1, 3, 1, 8},
 	{SPELL_SHOCK,
 	 "Яркая вспышка слетела с кончиков ваших пальцев и с оглушительным грохотом взорвалась в воздухе.",
 	 "Выпущенная $n1 яркая вспышка с оглушительным грохотом взорвалась в воздухе.",
