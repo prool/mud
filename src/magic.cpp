@@ -988,7 +988,7 @@ void battle_affect_update(CHAR_DATA * ch)
 	auto next_affect_i = ch->affected.begin();
 	for (auto affect_i = next_affect_i; affect_i != ch->affected.end(); affect_i = next_affect_i)
 	{
-		++next_affect_i;
+		++next_affect_i; // prool: crash here 
 		const auto& affect = *affect_i;
 
 		if (!IS_SET(affect->battleflag, AF_BATTLEDEC)

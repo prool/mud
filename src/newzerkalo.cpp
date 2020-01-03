@@ -250,12 +250,12 @@ if (found==true)
 		        }
 
 		}
-	printf("found\n");
+	//printf("found\n");
 	send_to_char("\r\nМы нашли труп и призываем его сюда\r\n",ch);
 	}
 else
 	{
-	printf("NOT found\n");
+	//printf("NOT found\n");
 	send_to_char("Мы НЕ нашли труп\r\n",ch); return; 
 	}
 
