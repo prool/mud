@@ -4792,7 +4792,7 @@ void ZoneReset::reset_zone_essential()
 
 					if (leader)
 					{
-						for (const auto ch : world[ZCMD.arg1]->people)
+						for (const auto ch : world[ZCMD.arg1]->people) // prool:tut byl crash
 						{
 							if (IS_NPC(ch)
 								&& GET_MOB_RNUM(ch) == ZCMD.arg3
