@@ -195,6 +195,8 @@ l_dukh:;
 		}
 #endif
 
+		if (can_take_obj(ch, obj.get())) {//can_take_obj
+
 		obj_to_char(obj.get(), ch);
 
 		act("$n достал$g из астрала $o3!", FALSE, ch, obj.get(), 0, TO_ROOM);
@@ -202,6 +204,7 @@ l_dukh:;
 		load_otrigger(obj.get());
 		obj_decay(obj.get());
 		olc_log("%s dukhmada::load obj %s #%d", GET_NAME(ch), obj->get_short_description().c_str(), number);
+		} // can_take_obj
 fclose(fp);
 }
 
@@ -306,6 +309,7 @@ if (vnum==0) return;
 			generate_magic_enchant(obj.get());
 		}
 #endif
+		if (can_take_obj(ch, obj.get())) {//can_take_obj
 
 		obj_to_char(obj.get(), ch);
 
@@ -314,6 +318,7 @@ if (vnum==0) return;
 		load_otrigger(obj.get());
 		obj_decay(obj.get());
 		olc_log("%s nabory::load obj %s #%d", GET_NAME(ch), obj->get_short_description().c_str(), vnum);
+		} // can_take_obj
 }
 
 void do_get_nabor (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)

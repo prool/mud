@@ -700,7 +700,7 @@ int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj)
 	if (IS_CARRYING_N(ch) >= CAN_CARRY_N(ch)
 		&& GET_OBJ_TYPE(obj) != OBJ_DATA::ITEM_MONEY)
 	{
-		act("$p: Вы не могете нести столько вещей.", FALSE, ch, obj, 0, TO_CHAR);
+		act("$p: Вы не можете нести столько вещей.", FALSE, ch, obj, 0, TO_CHAR);
 		return (0);
 	}
 	else if ((IS_CARRYING_W(ch) + GET_OBJ_WEIGHT(obj)) > CAN_CARRY_W(ch)

@@ -14,6 +14,7 @@ extern char prool_g_buf[];
 char *ptime(void);
 char	*to_utf(char *str);
 void make_who2html(void);
+int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj);
 
 // prool commands:
 void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
