@@ -14,6 +14,8 @@
 #include "named_stuff.hpp"
 #include "pk.h"
 
+#include "newzerkalo.h" // prool
+
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/format.hpp>
@@ -28,6 +30,89 @@ extern int invalid_anti_class(CHAR_DATA * ch, const OBJ_DATA * obj);	// implemen
 extern int invalid_unique(CHAR_DATA * ch, const OBJ_DATA * obj);	// implemented in class.cpp
 extern int invalid_no_class(CHAR_DATA * ch, const OBJ_DATA * obj);	// implemented in class.cpp
 extern void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness);	// implemented in spells.cpp
+
+int prool_inspektor (OBJ_DATA *obj) // by prool
+{// Торговый инспектор by prool
+// Проверяет, является ли объект obj объектом, выданным духом мада и возвращает 1 если да, 0 если нет
+// Предметы, выданные духами мада (команды ДУХМАДА и ПОЛУЧИТЬНАБОР) продавать нельзя, иначе
+// получится абъюз, заключающийся в возможности получения бесконечных денег
+
+	int vnum, number;
+	FILE *fp;
+	char *cc;
+	char buf[BUFLEN];
+	int 	o01, o02, o03, o04, o05, o06, o07, o08, o09, o10; 
+	int 	o11, o12, o13, o14, o15, o16, o17, o18, o19, o20; 
+	int	o21;
+
+	vnum=GET_OBJ_VNUM(obj);
+	//printf("prool_inspektor: obj vnum = %i\n", vnum);
+
+	{// dukhmada file read begin
+	fp=fopen(DUKHMADA_FILE,"r");
+	if (fp==0) return 0;
+
+	while(1)
+    {
+    buf[0]=0;
+    fgets(buf,BUFLEN,fp);
+    if (buf[0]==0) break;
+    if (buf[0]=='#') continue;
+    cc=strchr(buf,'#');
+    if (cc==0) continue;
+    number=atoi(cc+1);
+    //printf("number=%i ", number);
+    if (number==0) continue;
+    if (number==vnum) return 1;
+    }
+	fclose(fp);
+	} // dukhmada file read end
+
+	{// begin of nabory file read
+	fp=fopen(NABORY_FILE,"r");
+	if (fp==0) return 0;
+
+	o01=0;o02=0;o03=0;o04=0;o05=0;o06=0;o07=0;o08=0;o09=0;o10=0;
+	o11=0;o12=0;o13=0;o14=0;o15=0;o16=0;o17=0;o18=0;o19=0;o20=0;
+	o21=0;
+
+	while (1)
+	{
+	buf[0]=0;
+	fgets(buf,BUFLEN,fp);
+	if (buf[0]==0) break;
+		{
+		cc=strchr(buf,' ');
+		if (cc==0) cc=buf;
+		sscanf(cc,"%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+		&o01, &o02, &o03, &o04, &o05, &o06, &o07, &o08, &o09, &o10, 
+		&o11, &o12, &o13, &o14, &o15, &o16, &o17, &o18, &o19, &o20,
+	        &o21);
+		/*printf("%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i\n",
+		o01, o02, o03, o04, o05, o06, o07, o08, o09, o10, 
+		o11, o12, o13, o14, o15, o16, o17, o18, o19, o20,
+	        o21);*/
+
+		//printf("o01=%i ", o01);
+
+		if (o01==vnum) return 1;
+		if (o02==vnum) return 1;
+		if (o03==vnum) return 1;
+		if (o04==vnum) return 1;
+		if (o05==vnum) return 1;
+		if (o06==vnum) return 1;
+		if (o07==vnum) return 1;
+		if (o08==vnum) return 1;
+		if (o09==vnum) return 1;
+		if (o10==vnum) return 1;
+		if (o21==vnum) return 1;
+		}
+	}
+	} // end of nabory file read
+	//printf("\n");
+	return 0;
+} // end of prool_inspektor()
+
 namespace ShopExt
 {
 	const int IDENTIFY_COST = 110;
@@ -1397,6 +1482,11 @@ namespace ShopExt
 
 		if (cmd == "Оценить")
 		{
+			if (prool_inspektor(obj))
+			{
+				tell_to_char(keeper, ch, "Предметы, выданные духами мада, продавать запрещено!!");
+				return;
+			}
 			if (bloody::is_bloody(obj))
 			{
 				tell_to_char(keeper, ch, "Иди от крови отмой сначала!");
@@ -1419,6 +1509,11 @@ namespace ShopExt
 
 		if (cmd == "Продать")
 		{
+			if (prool_inspektor(obj))
+			{
+				tell_to_char(keeper, ch, "Предметы, выданные духами мада, продавать запрещено!!");
+				return;
+			}
 			if (obj->get_extra_flag(EExtraFlag::ITEM_NOSELL)
 				|| obj->get_extra_flag(EExtraFlag::ITEM_NAMED)
 				|| obj->get_extra_flag(EExtraFlag::ITEM_REPOP_DECAY)

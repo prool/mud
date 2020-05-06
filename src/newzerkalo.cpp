@@ -79,8 +79,6 @@
 
 #include "newzerkalo.h"
 
-#define BUFLEN 512
-
 void generate_magic_enchant(OBJ_DATA *obj);
 
 char prool_g_buf [PROOL_G_LEN];
@@ -119,7 +117,7 @@ void do_dukhmada (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	FILE *fp;
 	char *cc;
 
-if (!check_moves(ch,10))
+if (!check_moves(ch,20/*10*/))
 	{
 	//printf("prool debug: dukhmada: check moves\n");
 	return;
@@ -133,7 +131,7 @@ if (!is_rent(ch->in_room))
 	return;
 	}
 
-fp=fopen("dukhmada.cfg","r");
+fp=fopen(DUKHMADA_FILE,"r");
 if (fp==0)
 {
 	send_to_char("Духмада ушел в отпуск\r\n", ch);
@@ -334,14 +332,14 @@ int	o21;
 
 //printf("char in room rnum %i\n", ch->in_room);
 
-fp=fopen("nabory.cfg","r");
+fp=fopen(NABORY_FILE,"r");
 if (fp==0)
 {
 	send_to_char("В маде сейчас нет никаких наборов!\r\n", ch);
 	return;
 }
 
-if (!check_moves(ch,10))
+if (!check_moves(ch,20/*10*/))
 	{
 	fclose(fp);
 	return;
