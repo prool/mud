@@ -3020,7 +3020,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 			{
 				online_players++;
 			}
-			sprintf(buf, "Online: %d\r\n", online_players);
+			sprintf(buf, "Online: %d\r\n", online_players-1);
 		}
 
 		SEND_TO_Q(buf, d);
