@@ -9,6 +9,10 @@
 #include "utils.h"
 #include <boost/algorithm/string.hpp>
 
+#ifdef __CYGWIN__ // by prool
+#include <crypt.h>
+#endif
+
 std::unordered_map<std::string, std::shared_ptr<Account>> accounts;
 extern std::string GetNameByUnique(long unique, bool god);
 extern bool CompareParam(const std::string & buffer, const char *arg, bool full);
