@@ -19,9 +19,7 @@
 #include <boost/tokenizer.hpp>
 #include <boost/algorithm/string.hpp>
 
-#ifdef __CYGWIN__ // prool: в цигвиновских виндовых сборках система привилегий упрощенная, только по уровню
-#define TEST_BUILD 1
-#endif
+#define TEST_BUILD 1 // prool: система привилегий упрощенная, только по уровню
 
 /**
 * Система привилегий иммов и демигодов, совмещенная с бывшим god.lst.
