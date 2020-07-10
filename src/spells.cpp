@@ -1839,7 +1839,7 @@ void mort_show_obj_values(const OBJ_DATA * obj, CHAR_DATA * ch, int fullness)
 				if (drsdice == -1 || count == -1)
 				{
 					send_to_char(CCIRED(ch, C_NRM), ch);
-					send_to_char("Некорректная запись рецепта для вашего класса - сообщите Богам.\r\n", ch);
+					send_to_char("Error 2. Некорректная запись рецепта для вашего класса - сообщите Богам.\r\n", ch);
 					send_to_char(CCNRM(ch, C_NRM), ch);
 				}
 				else if (drsdice == LVL_IMPL)
@@ -2250,7 +2250,7 @@ void imm_show_obj_values(OBJ_DATA * obj, CHAR_DATA * ch)
 				if (drsdice == -1 || i == -1)
 				{
 					send_to_char(CCIRED(ch, C_NRM), ch);
-					send_to_char("Некорректная запись рецепта для вашего класса - сообщите Богам.\r\n", ch);
+					send_to_char("Error 1.Некорректная запись рецепта для вашего класса - сообщите Богам.\r\n", ch);
 					send_to_char(CCNRM(ch, C_NRM), ch);
 				}
 				else if (drsdice == LVL_IMPL)

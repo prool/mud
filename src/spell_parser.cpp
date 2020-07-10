@@ -3735,9 +3735,9 @@ void do_learn(CHAR_DATA *ch, char *argument, int/* cmd*/, int /*subcmd*/)
 		spellnum = rcpt;
 		rs = im_get_char_rskill(ch, spellnum);
 		spellname = imrecipes[spellnum].name;
-		if (imrecipes[spellnum].level == -1 || imrecipes[spellnum].remort == -1)
+		if (0/*imrecipes[spellnum].level == -1 || imrecipes[spellnum].remort == -1*/) // prool fool!!!
 		{
-			send_to_char("Некорректная запись рецепта для вашего класса - сообщите Богам.\r\n", ch);
+			send_to_char("Error 3. Некорректная запись рецепта для вашего класса - сообщите Богам.\r\n", ch);
 			return;
 		}
 	}

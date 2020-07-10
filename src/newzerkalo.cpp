@@ -287,14 +287,16 @@ send_to_char(ch, "Сервер будет автоматически перез�
 return;
 }
 
-void poluchit_obj(CHAR_DATA *ch, mob_vnum vnum)
+int poluchit_obj(CHAR_DATA *ch, mob_vnum vnum)
+// return value: 0 - предмет не существует или получен игроком нормально,
+// 1 - предмет не получен (например из-за веса)
 {
 mob_rnum r_num;
-if (vnum==0) return;
+if (vnum==0) return 0;
 		if ((r_num = real_object(vnum)) < 0)
 		{
 			send_to_char("Дух наборов пошарил в астрале, но там оказалось пусто\r\n", ch);
-			return;
+			return 0;
 		}
 		const auto obj = world_objects.create_from_prototype_by_rnum(r_num);
 		obj->set_crafter_uid(GET_UNIQUE(ch));
@@ -316,7 +318,13 @@ if (vnum==0) return;
 		load_otrigger(obj.get());
 		obj_decay(obj.get());
 		olc_log("%s nabory::load obj %s #%d", GET_NAME(ch), obj->get_short_description().c_str(), vnum);
+		return 0;
 		} // can_take_obj
+		else // если объект нельзя взять (например из-за веса), то он помещается в комнату
+		{
+			obj_to_room(obj.get(),ch->in_room);
+			return 1;
+		}
 }
 
 void do_get_nabor (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
@@ -324,13 +332,15 @@ void do_get_nabor (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 int 	o01, o02, o03, o04, o05, o06, o07, o08, o09, o10; 
 int 	o11, o12, o13, o14, o15, o16, o17, o18, o19, o20; 
 int	o21;
+int	ves;
 	mob_vnum number;
 	mob_rnum r_num;
 	char buf[BUFLEN];
 	FILE *fp;
 	char *cc;
 
-//printf("char in room rnum %i\n", ch->in_room);
+	ves=0;
+	//printf("char in room rnum %i\n", ch->in_room);
 
 fp=fopen(NABORY_FILE,"r");
 if (fp==0)
@@ -391,28 +401,29 @@ while (1)
 		o01, o02, o03, o04, o05, o06, o07, o08, o09, o10, 
 		o11, o12, o13, o14, o15, o16, o17, o18, o19, o20,
 	        o21);*/
-		poluchit_obj(ch, o01);
-		poluchit_obj(ch, o02);
-		poluchit_obj(ch, o03);
-		poluchit_obj(ch, o04);
-		poluchit_obj(ch, o05);
-		poluchit_obj(ch, o06);
-		poluchit_obj(ch, o07);
-		poluchit_obj(ch, o08);
-		poluchit_obj(ch, o09);
-		poluchit_obj(ch, o10);
-		poluchit_obj(ch, o11);
-		poluchit_obj(ch, o12);
-		poluchit_obj(ch, o13);
-		poluchit_obj(ch, o14);
-		poluchit_obj(ch, o15);
-		poluchit_obj(ch, o16);
-		poluchit_obj(ch, o17);
-		poluchit_obj(ch, o18);
-		poluchit_obj(ch, o19);
-		poluchit_obj(ch, o20);
-		poluchit_obj(ch, o21);
+		if (poluchit_obj(ch, o01)==1) ves=1;
+		if (poluchit_obj(ch, o02)==1) ves=1;
+		if (poluchit_obj(ch, o03)==1) ves=1;
+		if (poluchit_obj(ch, o04)==1) ves=1;
+		if (poluchit_obj(ch, o05)==1) ves=1;
+		if (poluchit_obj(ch, o06)==1) ves=1;
+		if (poluchit_obj(ch, o07)==1) ves=1;
+		if (poluchit_obj(ch, o08)==1) ves=1;
+		if (poluchit_obj(ch, o09)==1) ves=1;
+		if (poluchit_obj(ch, o10)==1) ves=1;
+		if (poluchit_obj(ch, o11)==1) ves=1;
+		if (poluchit_obj(ch, o12)==1) ves=1;
+		if (poluchit_obj(ch, o13)==1) ves=1;
+		if (poluchit_obj(ch, o14)==1) ves=1;
+		if (poluchit_obj(ch, o15)==1) ves=1;
+		if (poluchit_obj(ch, o16)==1) ves=1;
+		if (poluchit_obj(ch, o17)==1) ves=1;
+		if (poluchit_obj(ch, o18)==1) ves=1;
+		if (poluchit_obj(ch, o19)==1) ves=1;
+		if (poluchit_obj(ch, o20)==1) ves=1;
+		if (poluchit_obj(ch, o21)==1) ves=1;
 		fclose(fp);
+		if (ves==1) send_to_char("Вы не смогли удержать часть предметов и они упали на землю\r\n",ch);
 		return;
 		}
 	}
