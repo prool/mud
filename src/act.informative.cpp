@@ -4765,8 +4765,10 @@ void do_who(CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 		}
 	}			// end while (parser)
 
+#if 0 // prool: no spamcontrol in WHO command
 	if (who_spamcontrol(ch, strlen(name_search) ? WHO_LISTNAME : WHO_LISTALL))
 		return;
+#endif
 
 	// Строки содержащие имена
 	sprintf(buf, "%sБОГИ%s\r\n", CCICYN(ch, C_NRM), CCNRM(ch, C_NRM));
