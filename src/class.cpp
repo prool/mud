@@ -59,6 +59,7 @@ struct skillvariables_insgem insgem_vars;
 
 // local functions
 int parse_class(char arg);
+int parse_class_(char arg); // prool
 long find_class_bitvector(char arg);
 byte saving_throws(int class_num, int type, int level);
 int thaco(int class_num, int level);
@@ -145,20 +146,20 @@ const char *pc_class_types[] = { "Лекарь",
 const char *class_menu =
 	"\r\n"
 	"Выберите профессию :\r\n"
-	"  [Л]екарь\r\n"
-	"  [К]олдун\r\n"
-	"  [Т]ать\r\n"
-	"  [Б]огатырь\r\n"
-	"  [Н]аемник\r\n"
-	"  [Д]ружинник\r\n"
-	"  К[у]десник\r\n"
-	"  [В]олшебник\r\n"
-	"  [Ч]ернокнижник\r\n"
-	"  В[и]тязь\r\n"
-	"  [О]хотник\r\n"
-	"  Ку[з]нец\r\n"
-	"  Ку[п]ец\r\n"
-	"  Вол[x]в\r\n";
+	"   1 [Л]екарь\r\n"
+	"   2 [К]олдун\r\n"
+	"   3 [Т]ать\r\n"
+	"   4 [Б]огатырь\r\n"
+	"   5 [Н]аемник\r\n"
+	"   6 [Д]ружинник\r\n"
+	"   7 К[у]десник\r\n"
+	"   8 [В]олшебник\r\n"
+	"   9 [Ч]ернокнижник\r\n"
+	"  10 В[и]тязь\r\n"
+	"  11 [О]хотник\r\n"
+	"  12 Ку[з]нец\r\n"
+	"  13 Ку[п]ец\r\n"
+	"  14 Вол[x]в\r\n";
 
 const char *class_menu_vik =
 	"\r\n"
@@ -267,6 +268,49 @@ int parse_class(char arg)
 	case 'х':
 		return CLASS_DRUID;
 	default:
+		return CLASS_UNDEFINED;
+	}
+}
+
+int parse_class_(char *arg) // prool
+{
+char c;
+int i;
+	c = LOWER(*arg);
+
+	switch (c)
+	{
+	case 'л':
+		return CLASS_CLERIC;
+	case 'к':
+		return CLASS_BATTLEMAGE;
+	case 'т':
+		return CLASS_THIEF;
+	case 'б':
+		return CLASS_WARRIOR;
+	case 'н':
+		return CLASS_ASSASINE;
+	case 'д':
+		return CLASS_GUARD;
+	case 'у':
+		return CLASS_CHARMMAGE;
+	case 'в':
+		return CLASS_DEFENDERMAGE;
+	case 'ч':
+		return CLASS_NECROMANCER;
+	case 'и':
+		return CLASS_PALADINE;
+	case 'о':
+		return CLASS_RANGER;
+	case 'з':
+		return CLASS_SMITH;
+	case 'п':
+		return CLASS_MERCHANT;
+	case 'х':
+		return CLASS_DRUID;
+	default:
+		i=atoi(arg);
+		if ((i>0)&&(i<=14)) return i-1;
 		return CLASS_UNDEFINED;
 	}
 }

@@ -132,6 +132,7 @@ extern char *name_rules;
 // external functions
 void do_start(CHAR_DATA * ch, int newbie);
 int parse_class(char arg);
+int parse_class_(char *arg); // prool
 int parse_class_vik(char arg);
 int parse_class_step(char arg);
 int Valid_Name(char *newname);
@@ -3538,7 +3539,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 		{
 			GET_KIN(d->character) = 0; // added by WorM: Выставляем расу в Русич(коммент выше)
         		SEND_TO_Q(class_menu, d);
-			SEND_TO_Q("\r\nВаша профессия (Для более полной информации вы можете набрать"
+			SEND_TO_Q("\r\nВаша профессия, введите букву или номер (Для более полной информации вы можете набрать"
 				  " \r\nсправка <интересующая профессия>): ", d);
 			STATE(d) = CON_QCLASS;
 		}
@@ -3617,7 +3618,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 		Sventovit
 		 */
         SEND_TO_Q(class_menu, d);
-		SEND_TO_Q("\r\nВаша профессия (Для более полной информации вы можете набрать"
+		SEND_TO_Q("\r\nВаша профессия, введите букву или номер (Для более полной информации вы можете набрать"
 				  " \r\nсправка <интересующая профессия>): ", d);
 		STATE(d) = CON_QCLASS;
 		break;
@@ -3681,7 +3682,7 @@ void nanny(DESCRIPTOR_DATA * d, char *arg)
 			return;
 		}
 
-		load_result = parse_class(*arg);
+		load_result = parse_class_(arg); // prool
 		if (load_result == CLASS_UNDEFINED)
 		{
 			SEND_TO_Q("\r\nЭто не профессия.\r\nПрофессия : ", d);
