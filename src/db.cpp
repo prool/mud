@@ -77,6 +77,8 @@
 #include <cmath>
 #include <boost/lexical_cast.hpp>
 
+#include "newzerkalo.h" // prool
+
 #define CRITERION_FILE "criterion.xml"
 #define CASES_FILE "cases.xml"
 #define RANDOMOBJ_FILE "randomobj.xml"
@@ -2844,6 +2846,7 @@ void boot_db(void)
 	load_cities();
 	shutdown_parameters.mark_boot_time();
 	log("Boot db -- DONE.");
+	perslog("MUD started", " "); // prool
 
 }
 

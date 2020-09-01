@@ -591,6 +591,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"использовать", POS_RESTING, do_style, 0, 0, 0},
 	{"имя", POS_SLEEPING, do_name, 2/*LVL_IMMORT*/, 0, 0}, // prool
 
+	{"когда", POS_DEAD, do_kogda, 0, 0, 0}, // prool
 	{"колдовать", POS_SITTING, do_cast, 1, 0, -1},
 	{"казна", POS_RESTING, do_not_here, 1, 0, 0},
 	{"карта", POS_RESTING, do_map, 0, 0, 0},
@@ -2080,6 +2081,7 @@ int perform_dupe_check(DESCRIPTOR_DATA * d)
 		act("$n восстановил$g связь.", TRUE, d->character.get(), 0, 0, TO_ROOM);
 		sprintf(buf, "%s [%s] has reconnected.", GET_NAME(d->character), d->host);
 		mudlog(buf, NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
+		perslog("reconnected", GET_NAME(d->character)); // prool
 		login_change_invoice(d->character.get());
 		break;
 
@@ -2612,6 +2614,7 @@ void do_entergame(DESCRIPTOR_DATA * d)
 		break;
 	}
 
+	perslog("login", GET_NAME(d->character)); // prool
 	mudlog(buf, NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 	look_at_room(d->character.get(), 0);
 	d->has_prompt = 0;

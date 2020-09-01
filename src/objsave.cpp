@@ -3337,6 +3337,7 @@ int gen_receptionist(CHAR_DATA * ch, CHAR_DATA * recep, int cmd, char* /*arg*/, 
 			Crash_rentsave(ch, cost);
 			sprintf(buf, "%s has rented (%d/day, %ld tot.)",
 					GET_NAME(ch), cost, ch->get_gold() + ch->get_bank());
+			perslog("rented", GET_NAME(ch)); // prool
 		}
 		else  	// cryo
 		{
@@ -3346,6 +3347,7 @@ int gen_receptionist(CHAR_DATA * ch, CHAR_DATA * recep, int cmd, char* /*arg*/, 
 			Crash_cryosave(ch, cost);
 			sprintf(buf, "%s has cryo-rented.", GET_NAME(ch));
 			PLR_FLAGS(ch).set(PLR_CRYO);
+			perslog("cryo rented", GET_NAME(ch)); // prool
 		}
 
 		printf("%s %s\n", ptime(), to_utf(buf)); // prool

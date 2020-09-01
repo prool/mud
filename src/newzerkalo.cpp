@@ -2,7 +2,7 @@
 *   File: newzerkalo.cpp                      Part of NewZerkalo MUD      *
 *  Usage: prool subprograms for NewZerkalo MUD                            *
 *                                                                         *
-*  Copyleft 2011-2019, Prool                                              *
+*  Copyleft 2011-2020, Prool                                              *
 *                                                                         *
 *  Author: Prool, proolix@gmail.com, http://prool.kharkov.org             *
 ************************************************************************ */
@@ -430,4 +430,63 @@ while (1)
 
 send_to_char("Такого набора нет. Наберите ПОЛУЧИТЬНАБОР без параметров, чтобы увидеть список доступных наборов\r\n",ch);
 fclose(fp);
+}
+
+void perslog (char *verb, const char *pers)
+{
+FILE *fp; char buffer [PROOL_MAX_STRLEN];
+char *ident;
+int console_codetable=0;
+#define T_UTF 0
+char mudname[PROOL_MAX_STRLEN];
+
+mudname[0]=0;
+
+if (mudname[0]) ident=mudname;
+else ident = "NewZerkalo";
+
+fp=fopen(PERSLOG_FILE, "a");
+fprintf(fp,"%s %s %s\n",ptime(),pers,verb);
+if (console_codetable==T_UTF)
+	{
+	koi_to_utf8((char*)pers,buffer);
+	printf("%s %s %s %s\n",ident, ptime(),buffer,verb);
+	}
+else
+	{
+	printf("%s %s %s %s\n",ident, ptime(),pers,verb);
+	}
+fclose(fp);
+}
+
+void do_kogda (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
+{
+char str[PROOL_MAX_STRLEN];
+FILE *fp;
+int i, counter, tail;
+#define TAIL 30
+
+	// считаем кол-во строк в файле
+	fp=fopen(PERSLOG_FILE,"r");
+	counter=0;
+	while (fgets(str,PROOL_MAX_STRLEN,fp)!=NULL) counter++;
+	fclose(fp);
+
+	// читаем файл и транслируем его игроку
+	if (*argument==0) tail=TAIL;
+	else tail=atoi(argument+1);
+	//printf("tail=%i\n",tail);
+	if (tail==0) tail=TAIL;
+	i=0;
+	fp=fopen(PERSLOG_FILE,"r");
+	while (fgets(str,PROOL_MAX_STRLEN,fp)!=NULL)
+		{
+		if ((i+tail)>=counter)
+			{
+			send_to_char(str,ch);
+			send_to_char("\r",ch);
+			}
+		i++;
+		}
+	fclose(fp);
 }

@@ -3472,6 +3472,7 @@ void close_socket(DESCRIPTOR_DATA * d, int direct)
 
 				sprintf(buf, "Closing link to: %s.", GET_NAME(d->character));
 				//printf("%s %s\n", ptime(), to_utf(buf)); // prool
+                                perslog("closing link", GET_NAME(d->character)); // prool
 				mudlog(buf, NRM, MAX(LVL_GOD, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 			}
 			d->character->desc = NULL;
