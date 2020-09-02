@@ -591,7 +591,6 @@ cpp_extern const struct command_info cmd_info[] =
 	{"использовать", POS_RESTING, do_style, 0, 0, 0},
 	{"имя", POS_SLEEPING, do_name, 2/*LVL_IMMORT*/, 0, 0}, // prool
 
-	{"когда", POS_DEAD, do_kogda, 0, 0, 0}, // prool
 	{"колдовать", POS_SITTING, do_cast, 1, 0, -1},
 	{"казна", POS_RESTING, do_not_here, 1, 0, 0},
 	{"карта", POS_RESTING, do_map, 0, 0, 0},
@@ -858,11 +857,20 @@ cpp_extern const struct command_info cmd_info[] =
 	{"drink", POS_RESTING, do_drink, 0, SCMD_DRINK, 500},
 	{"drop", POS_RESTING, do_drop, 0, SCMD_DROP, 500},
 // prool commands:
+// Свои команды лучше добавлять в конце (не по алфавиту) по следующим причинам:
+// - они будут иметь меньший приоритет при вводе сокращенных команд,
+// у меня был случай: игроки привыкли что К это КОЛДОВАТЬ, а я добавил по алфавиту
+// команду КОГДА и она стала соответствовать букве К. У игроков перестали работать
+// скрипты в мад-клиенте.
+// - их легче найти при необходимости модификации кода
+// - когда мои модификации не разбросаны по коду, а собраны в одном месте файла, это облегчает
+// слияние с основной веткой (меньше верояность конфликтов, которые потом приходится разрешать вручную)
 	{"акциотруп", POS_RESTING, do_accio_trup, 0, 0, 0},
 	{"духмада", POS_RESTING, do_dukhmada, 0, 0, 0},
 	{"получитьнабор", POS_RESTING, do_get_nabor, 0, 0, 0},
 	{"bootinfo", POS_RESTING, do_shutdown_info, 0, 0, 0},
-	{"fflush", POS_DEAD, do_fflush, LVL_IMMORT, 0, 0}, // prool
+	{"fflush", POS_DEAD, do_fflush, LVL_IMMORT, 0, 0},
+	{"когда", POS_DEAD, do_kogda, 0, 0, 0},
 // end of proolcommands
 	{"dumb", POS_DEAD, do_wizutil, LVL_IMMORT, SCMD_DUMB, 0},
 	{"eat", POS_RESTING, do_eat, 0, SCMD_EAT, 500},
