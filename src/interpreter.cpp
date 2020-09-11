@@ -2592,11 +2592,13 @@ void do_entergame(DESCRIPTOR_DATA * d)
 
 	init_warcry(d->character.get());
 
+#if 0 // prool: я тут слегка перекурочил в сторону упрощения систему привилегий, теперь она только по уровню
 	// На входе в игру вешаем флаг (странно, что он до этого нигде не вешался
 	if (Privilege::god_list_check(GET_NAME(d->character), GET_UNIQUE(d->character)) && (GET_LEVEL(d->character) < LVL_GOD))
 	{
 	    SET_GOD_FLAG(d->character, GF_DEMIGOD);
 	}
+#endif
 	// Насильственно забираем этот флаг у иммов (если он, конечно же, есть
 	if ((GET_GOD_FLAG(d->character, GF_DEMIGOD) && GET_LEVEL(d->character) >= LVL_GOD))
 	{
