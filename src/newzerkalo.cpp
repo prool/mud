@@ -490,3 +490,41 @@ int i, counter, tail;
 		}
 	fclose(fp);
 }
+
+void do_proolflag (CHAR_DATA *ch, char *arg, int/* cmd*/, int/* subcmd*/)
+{int result;
+	//send_to_char("proolflag\r\n",ch);
+	if (*arg) {
+		//send_to_char("argument present\r\n",ch);
+		//printf("arg='%s'\r\n",arg);
+		if (*(arg+1)=='0') {
+			PROOL_FLAG(ch)=0;
+			send_to_char("Прульфлаг сброшен в 0\r\n",ch);
+		}
+		else if (*(arg+1)=='1') {
+			PROOL_FLAG(ch)=1;
+			send_to_char("Прульфлаг установлен в 1\r\n",ch);
+		}
+		else if (*(arg+1)=='t') {
+			result = PRF_TOG_CHK(ch, PRF_TESTER);
+			if (result) send_to_char("Флаг ТЕСТЕР установлен\r\n",ch);
+			else send_to_char("Флаг ТЕСТЕР сброшен\r\n", ch);
+		}
+		else {
+			send_to_char("Использование команды: proolflag 0 или proolflag 1 или proolflag t\r\n",ch);
+		}
+	}
+	else {
+		//send_to_char("argument none\r\n",ch);
+		if (PROOL_FLAG(ch)) {
+			send_to_char("Прульфлаг = 1\r\n",ch);
+		}
+		else
+		{
+			send_to_char("Прульфлаг = 0\r\n",ch);
+		}
+		if (PRF_FLAGGED(ch, PRF_TESTER)) send_to_char("Флаг ТЕСТЕР = 1\r\n",ch);
+		else send_to_char("Флаг ТЕСТЕР = 0\r\n",ch);
+	}
+}
+

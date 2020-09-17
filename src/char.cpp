@@ -248,6 +248,7 @@ void CHAR_DATA::reset()
 	mob_specials.default_pos = POS_STANDING;
 	char_specials.carry_weight = 0;
 	char_specials.carry_items = 0;
+	char_specials.prool_flag = 0; // prool
 
 	if (GET_HIT(this) <= 0)
 	{

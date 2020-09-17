@@ -11,6 +11,9 @@
 #include "poison.hpp"
 #include "bonus.h"
 
+#include "utils.h" // prool
+#include "newzerkalo.h" // prool
+
 // extern
 int extra_aco(int class_num, int level);
 void alt_equip(CHAR_DATA * ch, int pos, int dam, int chance);
@@ -1923,6 +1926,8 @@ void Damage::dam_message(CHAR_DATA* ch, CHAR_DATA* victim) const
 	int dam_msgnum;
 	int w_type = msg_num;
 
+	char proolbuf[BUFLEN]; // prool
+
 	static const struct dam_weapon_type
 	{
 		const char *to_room;
@@ -2053,6 +2058,7 @@ void Damage::dam_message(CHAR_DATA* ch, CHAR_DATA* victim) const
 	}
 
 	// damage message to damager
+	// tyt byl prool
 	send_to_char(ch, "%s", dam ? "&Y&q" : "&y&q");
 	if (!brief_shields_.empty() && PRF_FLAGGED(ch, PRF_BRIEF_SHIELDS))
 	{
@@ -2070,6 +2076,11 @@ void Damage::dam_message(CHAR_DATA* ch, CHAR_DATA* victim) const
 		act(buf_ptr, FALSE, ch, NULL, victim, TO_CHAR);
 	}
 	send_to_char("&Q&n", ch);
+
+	if (PROOL_FLAG(ch)) { // prool
+	snprintf(proolbuf,BUFLEN,"Нанесенный урон %i\r\n", dam);
+	send_to_char(proolbuf,ch);
+	}
 
 	// damage message to damagee
 	send_to_char("&R&q", victim);

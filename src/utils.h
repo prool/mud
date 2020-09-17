@@ -722,6 +722,7 @@ inline T VPOSI(const T val, const T min, const T max)
 #define GET_ID(x)         ((x)->id)
 #define IS_CARRYING_W(ch) ((ch)->char_specials.carry_weight)
 #define IS_CARRYING_N(ch) ((ch)->char_specials.carry_items)
+#define PROOL_FLAG(ch) ((ch)->char_specials.prool_flag) // prool flag
 
 // Макросы доступа к полям параметров комнат
 #define GET_ROOM_BASE_POISON(room) ((room)->base_property.poison)

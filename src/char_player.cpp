@@ -1260,6 +1260,7 @@ int Player::load_char_ascii(const char *name, bool reboot, const bool find_id /*
 	GET_RSKILL(this) = NULL;	// рецептов не знает
 	this->char_specials.carry_weight = 0;
 	this->char_specials.carry_items = 0;
+	this->char_specials.prool_flag = 0; // prool
 	this->real_abils.armor = 100;
 	GET_MEM_TOTAL(this) = 0;
 	GET_MEM_COMPLETED(this) = 0;

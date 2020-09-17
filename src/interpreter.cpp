@@ -871,6 +871,7 @@ cpp_extern const struct command_info cmd_info[] =
 	{"bootinfo", POS_RESTING, do_shutdown_info, 0, 0, 0},
 	{"fflush", POS_DEAD, do_fflush, LVL_IMMORT, 0, 0},
 	{"когда", POS_DEAD, do_kogda, 0, 0, 0},
+	{"proolflag", POS_DEAD, do_proolflag, 0, 0, 0},
 // end of proolcommands
 	{"dumb", POS_DEAD, do_wizutil, LVL_IMMORT, SCMD_DUMB, 0},
 	{"eat", POS_RESTING, do_eat, 0, SCMD_EAT, 500},

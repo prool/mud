@@ -143,6 +143,7 @@ struct char_special_data
 	time_t who_last; // таймстамп последнего использования команды кто
 
 	struct char_special_data_saved saved;			// constants saved in plrfile
+	int	prool_flag; // prool test flag
 };
 
 // Specials used by NPCs, not PCs
