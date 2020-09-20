@@ -116,6 +116,7 @@ void do_dukhmada (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/)
 	char buf[BUFLEN];
 	FILE *fp;
 	char *cc;
+	int found;
 
 if (!check_moves(ch,20/*10*/))
 	{
@@ -138,13 +139,14 @@ if (fp==0)
 	return;
 }
 
-if (*argument==0)
+if (*argument==0) // аргументов нет, выдаем список всех предметов, которые можно получить
 	{
 		while (1)
 			{
 			buf[0]=0;
 			fgets(buf,BUFLEN,fp);
 			if (buf[0]==0) break;
+			if (!memcmp(buf,"SETS",4))break;
 			if (buf[0]=='#') buf[0]=' ';
 			cc=strchr(buf,'#');
 			if (cc) strcpy(cc,"\r\n");
@@ -154,6 +156,7 @@ if (*argument==0)
 	return;
 	}
 
+found=0;
 while(1)
     {
     buf[0]=0;
@@ -167,14 +170,7 @@ while(1)
     *cc=0;
     if (!strcmp(buf,argument+1))
 	{
-	goto l_dukh;
-	}
-    }
-send_to_char("Духмада не знает такого предмета\r\n",ch);
-fclose(fp);
-return;
-l_dukh:;
-
+		found=1;
 		if ((r_num = real_object(number)) < 0)
 		{
 			send_to_char("Духмада пошарил в астрале, но там оказалось пусто\r\n", ch);
@@ -203,7 +199,11 @@ l_dukh:;
 		obj_decay(obj.get());
 		olc_log("%s dukhmada::load obj %s #%d", GET_NAME(ch), obj->get_short_description().c_str(), number);
 		} // can_take_obj
+	}
+    }
+if (found==0) send_to_char("Духмада не знает такого предмета\r\n",ch);
 fclose(fp);
+return;
 }
 
 void do_accio_trup(CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/)
