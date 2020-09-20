@@ -124,7 +124,8 @@ if (!check_moves(ch,20/*10*/))
 	return;
 	}
 
-//printf("prool debug: dukhmada OK\n");
+//printf("prool debug: dukhmada ok\n");
+//if (argument) if (*argument) printf("prool debug: dukhmada '%s'\n",argument);
 
 if (!is_rent(ch->in_room))
 	{
