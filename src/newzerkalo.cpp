@@ -529,3 +529,28 @@ void do_proolflag (CHAR_DATA *ch, char *arg, int/* cmd*/, int/* subcmd*/)
 	}
 }
 
+void do_megarecall(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/)
+{
+	if (IS_NPC(ch))
+	{
+		send_to_char("Монстрам эта команда не разрешена!\r\n", ch);
+		return;
+	}
+
+	const int rent_room = real_room(4056);
+
+	send_to_char("Вам очень захотелось оказаться на ренте.\r\n", ch);
+		if (ch->in_room != rent_room)
+		{
+			send_to_char("Вы почувствовали, как непреодолимая сила подхватила вас и унесла!\r\n", ch);
+			act("$n закатил$a глаза и внезапно исчез$q!", TRUE, ch, 0, 0, TO_ROOM | TO_ARENA_LISTEN);
+			char_from_room(ch);
+			char_to_room(ch, rent_room);
+			look_at_room(ch, 0);
+			act("$n внезапно появил$u в центре комнаты!", TRUE, ch, 0, 0, TO_ROOM);
+		}
+		else
+		{
+			send_to_char("Но вы и так находитесь на ренте!\r\n", ch);
+		}
+}

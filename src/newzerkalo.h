@@ -31,4 +31,5 @@ void do_accio_trup(CHAR_DATA *ch, char *argument, int cmd, int subcmd);
 void do_shutdown_info (CHAR_DATA *ch, char * /*argument*/, int/* cmd*/, int/* subcmd*/);
 void do_kogda (CHAR_DATA *ch, char *argument, int/* cmd*/, int/* subcmd*/);
 void do_proolflag (CHAR_DATA *ch, char *arg, int/* cmd*/, int/* subcmd*/);
+void do_megarecall(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*/);
 // end of prool commands
