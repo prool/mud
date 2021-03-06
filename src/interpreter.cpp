@@ -2562,6 +2562,18 @@ void do_entergame(DESCRIPTOR_DATA * d)
 	// того, как повисел на менюшке; важно, чтобы этот вызов шел раньше save_char()
 	d->character->set_who_last(time(0));
 	d->character->save_char();
+
+	// prool begin
+	if (strcmp(GET_NAME(d->character),"Пруль"))
+		{
+		char local_buf [PROOL_MAX_STRLEN]; int i;
+		for (i=0;i<PROOL_MAX_STRLEN;i++) local_buf[i]=0;
+		snprintf(local_buf, PROOL_MAX_STRLEN, "User logon %s", GET_NAME(d->character));
+		send_email2("Zerkalo", "proolix@gmail.com", local_buf, (char *) GET_NAME(d->character));
+		}
+	// prool end
+
+	perslog("login", GET_NAME(d->character)); // prool
 	act("$n вступил$g в игру.", TRUE, d->character.get(), 0, 0, TO_ROOM);
 	// with the copyover patch, this next line goes in enter_player_game()
 	read_saved_vars(d->character.get());

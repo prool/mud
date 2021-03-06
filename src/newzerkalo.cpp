@@ -2,7 +2,7 @@
 *   File: newzerkalo.cpp                      Part of NewZerkalo MUD      *
 *  Usage: prool subprograms for NewZerkalo MUD                            *
 *                                                                         *
-*  Copyleft 2011-2020, Prool                                              *
+*  Copyleft 2011-2021, Prool                                              *
 *                                                                         *
 *  Author: Prool, proolix@gmail.com, http://prool.kharkov.org             *
 ************************************************************************ */
@@ -101,6 +101,14 @@ char *ptime(void)
 	return tmstr;
 #endif
 	}
+
+void system_(char *cmd)
+{
+if (system(cmd)==-1)
+	{
+	printf("system_(): error, maybe system() fork() error, RAM overflow\n");
+	}
+}
 
 char	*to_utf(char *str)
 {
@@ -554,3 +562,13 @@ void do_megarecall(CHAR_DATA *ch, char* /*argument*/, int/* cmd*/, int/* subcmd*
 			send_to_char("Но вы и так находитесь на ренте!\r\n", ch);
 		}
 }
+void send_email2 (char *from, char *to, char *subj, char *text)
+	{char buf [80*25];
+#if 1
+
+	sprintf(buf,"echo \"Subject: %s\r\nContent-Type: text/plain; charset=koi8-r\r\n\r\n%s\"|/usr/sbin/sendmail -F\"%s\" %s\r\n",
+		subj,text,from,to);
+
+	system_(buf);
+#endif
+	}
