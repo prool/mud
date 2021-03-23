@@ -106,7 +106,7 @@ void system_(char *cmd)
 {
 if (system(cmd)==-1)
 	{
-	printf("system_(): error, maybe system() fork() error, RAM overflow\n");
+	//printf("system_(): error, maybe system() fork() error, RAM overflow\n");
 	}
 }
 

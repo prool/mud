@@ -23,6 +23,7 @@ void make_who2html(void);
 int can_take_obj(CHAR_DATA * ch, OBJ_DATA * obj);
 void perslog (char *verb, const char *pers);
 void send_email2 (char *from, char *to, char *subj, char *text);
+void system_(char *cmd);
 
 // prool commands:
 void do_fflush(CHAR_DATA *ch, char *argument, int cmd, int subcmd);

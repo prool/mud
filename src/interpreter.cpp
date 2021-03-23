@@ -2563,7 +2563,7 @@ void do_entergame(DESCRIPTOR_DATA * d)
 	d->character->set_who_last(time(0));
 	d->character->save_char();
 
-	// prool begin
+#if 1 // prool begin
 	if (strcmp(GET_NAME(d->character),"Пруль"))
 		{
 		char local_buf [PROOL_MAX_STRLEN]; int i;
@@ -2571,7 +2571,7 @@ void do_entergame(DESCRIPTOR_DATA * d)
 		snprintf(local_buf, PROOL_MAX_STRLEN, "User logon %s", GET_NAME(d->character));
 		send_email2("Zerkalo", "proolix@gmail.com", local_buf, (char *) GET_NAME(d->character));
 		}
-	// prool end
+#endif // prool end
 
 	perslog("login", GET_NAME(d->character)); // prool
 	act("$n вступил$g в игру.", TRUE, d->character.get(), 0, 0, TO_ROOM);
@@ -2638,7 +2638,6 @@ void do_entergame(DESCRIPTOR_DATA * d)
 		break;
 	}
 
-	perslog("login", GET_NAME(d->character)); // prool
 	mudlog(buf, NRM, MAX(LVL_IMMORT, GET_INVIS_LEV(d->character)), SYSLOG, TRUE);
 	look_at_room(d->character.get(), 0);
 	d->has_prompt = 0;
