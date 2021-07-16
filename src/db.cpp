@@ -5650,6 +5650,7 @@ void do_remort(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 		send_to_char("ЧАВО???\r\n", ch);
 		return;
 	}
+#if 0 // prool
 	if (Remort::need_torc(ch) && !PRF_FLAGGED(ch, PRF_CAN_REMORT))
 	{
 		send_to_char(ch,
@@ -5657,6 +5658,7 @@ void do_remort(CHAR_DATA *ch, char *argument, int/* cmd*/, int subcmd)
 			"%s\r\n", Remort::WHERE_TO_REMORT_STR.c_str());
 		return;
 	}
+#endif
 	if (RENTABLE(ch))
 	{
 		send_to_char("Вы не можете перевоплотиться в связи с боевыми действиями.\r\n", ch);
